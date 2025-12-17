@@ -729,21 +729,28 @@ export async function createExpense(expense: Omit<Expense, 'id'>): Promise<Expen
 // ============== SETTINGS ==============
 export async function getSettings(): Promise<Settings> {
   if (isSupabaseConfigured && supabase) {
-    const { data, error } = await supabase.from('settings').select('*');
-    if (error) throw error;
-    const settings: Record<string, string> = {};
-    (data || []).forEach(row => {
-      settings[row.key] = row.value;
-    });
+    // La tabella settings ha una singola riga con colonne dirette
+    const { data, error } = await supabase.from('settings').select('*').limit(1).single();
+    if (error) {
+      console.warn('Error fetching settings from Supabase, using defaults:', error);
+      // Ritorna valori di default se la tabella è vuota o c'è un errore
+      return {
+        shop_name: 'Il Mio Ristorante',
+        currency: '€',
+        iva_rate: 17,
+        default_threshold: 10,
+        language: 'it',
+      };
+    }
     return {
-      shop_name: settings.shop_name || 'Il Mio Ristorante',
-      currency: settings.currency || '€',
-      iva_rate: parseFloat(settings.iva_rate || '17'),
-      default_threshold: parseFloat(settings.default_threshold || '10'),
-      language: settings.language || 'it',
-      address: settings.address,
-      phone: settings.phone,
-      email: settings.email,
+      shop_name: data?.shop_name || 'Il Mio Ristorante',
+      currency: data?.currency || '€',
+      iva_rate: data?.iva_rate ?? 17,
+      default_threshold: data?.default_threshold ?? 10,
+      language: data?.language || 'it',
+      address: data?.address,
+      phone: data?.phone,
+      email: data?.email,
     };
   }
   return getLocalData('settings', {
@@ -757,13 +764,29 @@ export async function getSettings(): Promise<Settings> {
 
 export async function updateSettings(settings: Partial<Settings>): Promise<void> {
   if (isSupabaseConfigured && supabase) {
-    const updates = Object.entries(settings).map(([key, value]) => ({
-      key,
-      value: String(value),
-    }));
-    for (const update of updates) {
-      await supabase.from('settings').upsert(update);
+    // Prima verifica se esiste una riga nella tabella settings
+    const { data: existing } = await supabase.from('settings').select('id').limit(1).single();
+
+    if (existing) {
+      // Aggiorna la riga esistente
+      const { error } = await supabase.from('settings').update(settings).eq('id', existing.id);
+      if (error) throw error;
+    } else {
+      // Inserisci una nuova riga con i valori di default + le modifiche
+      const newSettings = {
+        shop_name: 'Il Mio Ristorante',
+        currency: '€',
+        iva_rate: 17,
+        default_threshold: 10,
+        language: 'it',
+        ...settings
+      };
+      const { error } = await supabase.from('settings').insert(newSettings);
+      if (error) throw error;
     }
+
+    // Emetti l'evento anche per Supabase
+    window.dispatchEvent(new CustomEvent('settings-updated', { detail: settings }));
     return;
   }
   const currentSettings = getLocalData<Settings>('settings', {} as Settings);

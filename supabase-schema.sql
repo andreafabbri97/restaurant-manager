@@ -146,8 +146,10 @@ CREATE TABLE IF NOT EXISTS expenses (
 CREATE TABLE IF NOT EXISTS supplies (
   id SERIAL PRIMARY KEY,
   date DATE NOT NULL DEFAULT CURRENT_DATE,
+  supplier_name VARCHAR(100),
   total_cost DECIMAL(10, 2) NOT NULL DEFAULT 0,
-  description TEXT
+  notes TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- ============== SUPPLY ITEMS ==============
