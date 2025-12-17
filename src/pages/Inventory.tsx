@@ -966,8 +966,8 @@ export function Inventory() {
           {/* Add Item Form */}
           <div className="border-t border-dark-700 pt-4">
             <h3 className="font-semibold text-white mb-3">Aggiungi Ingrediente</h3>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-              <div className="md:col-span-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3">
+              <div className="sm:col-span-2 lg:col-span-5">
                 <label className="label">Ingrediente</label>
                 <select
                   value={newSupplyItem.ingredient_id}
@@ -991,7 +991,7 @@ export function Inventory() {
                     ))}
                 </select>
               </div>
-              <div>
+              <div className="lg:col-span-3">
                 <label className="label">Quantità</label>
                 <input
                   type="number"
@@ -1002,25 +1002,25 @@ export function Inventory() {
                   placeholder="0.00"
                 />
               </div>
-              <div>
-                <label className="label">Costo Unit. (€)</label>
-                <div className="flex gap-2">
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={newSupplyItem.unit_cost}
-                    onChange={(e) => setNewSupplyItem({ ...newSupplyItem, unit_cost: e.target.value })}
-                    className="input flex-1"
-                    placeholder="0.00"
-                  />
-                  <button
-                    onClick={handleAddSupplyItem}
-                    className="btn-primary px-3"
-                    title="Aggiungi"
-                  >
-                    <Plus className="w-5 h-5" />
-                  </button>
-                </div>
+              <div className="lg:col-span-3">
+                <label className="label">Costo Unitario (€)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={newSupplyItem.unit_cost}
+                  onChange={(e) => setNewSupplyItem({ ...newSupplyItem, unit_cost: e.target.value })}
+                  className="input"
+                  placeholder="0.00"
+                />
+              </div>
+              <div className="lg:col-span-1 flex items-end">
+                <button
+                  onClick={handleAddSupplyItem}
+                  className="btn-primary w-full h-[42px]"
+                  title="Aggiungi ingrediente"
+                >
+                  <Plus className="w-5 h-5" />
+                </button>
               </div>
             </div>
           </div>
