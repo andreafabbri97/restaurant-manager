@@ -17,9 +17,14 @@ import {
   X,
   Wifi,
   WifiOff,
+  Sun,
+  Moon,
+  PanelLeftClose,
+  PanelLeft,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNotifications } from '../../context/NotificationContext';
+import { useTheme } from '../../context/ThemeContext';
 import { ROLE_LABELS } from '../../types';
 import { isSupabaseConfigured } from '../../lib/supabase';
 
@@ -46,6 +51,7 @@ interface SidebarProps {
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { user, logout, hasPermission } = useAuth();
   const { isRealtimeConnected } = useNotifications();
+  const { theme, toggleTheme, sidebarCollapsed, toggleSidebar } = useTheme();
 
   // Filtra navigazione in base ai permessi
   const filteredNavigation = navigation.filter((item) => hasPermission(item.permission));
@@ -75,6 +81,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     logout();
   }
 
+  // Determina la larghezza della sidebar
+  const sidebarWidth = sidebarCollapsed ? 'lg:w-20' : 'lg:w-64';
+
   return (
     <>
       {/* Overlay per mobile */}
@@ -87,20 +96,20 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-0 h-screen w-72 lg:w-64 bg-dark-900 border-r border-dark-700 flex flex-col z-50 transform transition-transform duration-300 ease-in-out ${
+        className={`fixed left-0 top-0 h-screen w-72 ${sidebarWidth} bg-dark-900 border-r border-dark-700 flex flex-col z-50 transform transition-all duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
         {/* Header con logo e close button */}
-        <div className="p-4 lg:p-6 border-b border-dark-700">
+        <div className={`p-4 ${sidebarCollapsed ? 'lg:p-3' : 'lg:p-6'} border-b border-dark-700`}>
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary-500 flex items-center justify-center">
+            <div className={`flex items-center ${sidebarCollapsed ? 'lg:justify-center lg:w-full' : 'gap-3'}`}>
+              <div className="w-10 h-10 rounded-xl bg-primary-500 flex items-center justify-center flex-shrink-0">
                 <UtensilsCrossed className="w-6 h-6 text-dark-900" />
               </div>
-              <div>
-                <h1 className="font-bold text-lg text-white">Kebab</h1>
-                <p className="text-xs text-dark-400">San Marino</p>
+              <div className={sidebarCollapsed ? 'lg:hidden' : ''}>
+                <h1 className="font-bold text-lg text-white">Restaurant</h1>
+                <p className="text-xs text-dark-400">Manager</p>
               </div>
             </div>
             {/* Close button - solo mobile */}
@@ -115,14 +124,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
         {/* User Info */}
         {user && (
-          <div className="p-4 border-b border-dark-700">
-            <div className="flex items-center gap-3">
+          <div className={`p-4 ${sidebarCollapsed ? 'lg:p-3' : ''} border-b border-dark-700`}>
+            <div className={`flex items-center ${sidebarCollapsed ? 'lg:justify-center' : 'gap-3'}`}>
               <div className="w-10 h-10 rounded-full bg-dark-700 flex items-center justify-center flex-shrink-0">
                 <span className="text-lg font-semibold text-primary-400">
                   {user.name.charAt(0).toUpperCase()}
                 </span>
               </div>
-              <div className="flex-1 min-w-0">
+              <div className={`flex-1 min-w-0 ${sidebarCollapsed ? 'lg:hidden' : ''}`}>
                 <p className="font-medium text-white text-sm truncate">{user.name}</p>
                 <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border ${getRoleBadgeClass()}`}>
                   <Shield className="w-3 h-3" />
@@ -134,20 +143,21 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         )}
 
         {/* Navigation */}
-        <nav className="flex-1 p-3 lg:p-4 space-y-1 overflow-y-auto">
+        <nav className={`flex-1 p-3 ${sidebarCollapsed ? 'lg:p-2' : 'lg:p-4'} space-y-1 overflow-y-auto`}>
           {filteredNavigation.map((item) => (
             <NavLink
               key={item.name}
               to={item.href}
               onClick={handleNavClick}
+              title={sidebarCollapsed ? item.name : undefined}
               className={({ isActive }) =>
-                `sidebar-link ${isActive ? 'active' : ''}`
+                `sidebar-link ${isActive ? 'active' : ''} ${sidebarCollapsed ? 'lg:justify-center lg:px-3' : ''}`
               }
             >
-              <item.icon className="w-5 h-5" />
-              <span className="flex-1">{item.name}</span>
+              <item.icon className="w-5 h-5 flex-shrink-0" />
+              <span className={`flex-1 ${sidebarCollapsed ? 'lg:hidden' : ''}`}>{item.name}</span>
               {/* Live indicator for Orders */}
-              {item.href === '/orders' && isSupabaseConfigured && (
+              {item.href === '/orders' && isSupabaseConfigured && !sidebarCollapsed && (
                 <span
                   className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-xs ${
                     isRealtimeConnected
@@ -163,22 +173,69 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   )}
                 </span>
               )}
+              {/* Collapsed indicator - dot for orders */}
+              {item.href === '/orders' && isSupabaseConfigured && sidebarCollapsed && (
+                <span
+                  className={`absolute top-1 right-1 w-2 h-2 rounded-full hidden lg:block ${
+                    isRealtimeConnected ? 'bg-emerald-400' : 'bg-amber-400'
+                  }`}
+                />
+              )}
             </NavLink>
           ))}
         </nav>
 
-        {/* Logout Button */}
-        <div className="p-4 border-t border-dark-700">
+        {/* Bottom Section */}
+        <div className={`p-4 ${sidebarCollapsed ? 'lg:p-2' : ''} border-t border-dark-700 space-y-2`}>
+          {/* Theme Toggle */}
+          <button
+            onClick={toggleTheme}
+            title={theme === 'dark' ? 'Passa al tema chiaro' : 'Passa al tema scuro'}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-dark-400 hover:text-white hover:bg-dark-800 transition-colors ${
+              sidebarCollapsed ? 'lg:justify-center lg:px-3' : ''
+            }`}
+          >
+            {theme === 'dark' ? (
+              <Sun className="w-5 h-5 flex-shrink-0" />
+            ) : (
+              <Moon className="w-5 h-5 flex-shrink-0" />
+            )}
+            <span className={sidebarCollapsed ? 'lg:hidden' : ''}>{theme === 'dark' ? 'Tema Chiaro' : 'Tema Scuro'}</span>
+          </button>
+
+          {/* Collapse Toggle - solo desktop */}
+          <button
+            onClick={toggleSidebar}
+            title={sidebarCollapsed ? 'Espandi sidebar' : 'Riduci sidebar'}
+            className={`hidden lg:flex w-full items-center gap-3 px-4 py-3 rounded-xl text-dark-400 hover:text-white hover:bg-dark-800 transition-colors ${
+              sidebarCollapsed ? 'justify-center px-3' : ''
+            }`}
+          >
+            {sidebarCollapsed ? (
+              <PanelLeft className="w-5 h-5 flex-shrink-0" />
+            ) : (
+              <PanelLeftClose className="w-5 h-5 flex-shrink-0" />
+            )}
+            {!sidebarCollapsed && <span>Riduci Menu</span>}
+          </button>
+
+          {/* Logout Button */}
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-dark-400 hover:text-white hover:bg-dark-800 transition-colors"
+            title={sidebarCollapsed ? 'Esci' : undefined}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-dark-400 hover:text-white hover:bg-dark-800 transition-colors ${
+              sidebarCollapsed ? 'lg:justify-center lg:px-3' : ''
+            }`}
           >
-            <LogOut className="w-5 h-5" />
-            <span>Esci</span>
+            <LogOut className="w-5 h-5 flex-shrink-0" />
+            <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Esci</span>
           </button>
-          <div className="text-xs text-dark-500 text-center mt-3 hidden lg:block">
-            <p>Versione 2.0</p>
-          </div>
+
+          {!sidebarCollapsed && (
+            <div className="text-xs text-dark-500 text-center mt-3 hidden lg:block">
+              <p>Versione 2.0</p>
+            </div>
+          )}
         </div>
       </aside>
     </>

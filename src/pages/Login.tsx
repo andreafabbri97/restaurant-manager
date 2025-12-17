@@ -42,9 +42,9 @@ export function Login() {
         {/* Logo/Header */}
         <div className="text-center mb-8">
           <div className="w-20 h-20 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary-500/30">
-            <span className="text-4xl">🥙</span>
+            <span className="text-4xl">🍽️</span>
           </div>
-          <h1 className="text-3xl font-bold text-white">Kebab Manager</h1>
+          <h1 className="text-3xl font-bold text-white">Restaurant Manager</h1>
           <p className="text-dark-400 mt-2">Accedi al tuo account</p>
         </div>
 
@@ -120,7 +120,7 @@ export function Login() {
 
         {/* Footer */}
         <p className="text-center text-dark-500 text-sm mt-6">
-          Kebab Manager v2.0 - Sistema Gestionale
+          Restaurant Manager v2.0 - Sistema Gestionale
         </p>
       </div>
     </div>
