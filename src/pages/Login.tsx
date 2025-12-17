@@ -116,22 +116,6 @@ export function Login() {
             </button>
           </form>
 
-          {/* Demo Credentials */}
-          <div className="mt-6 pt-6 border-t border-dark-700">
-            <p className="text-xs text-dark-500 text-center mb-3">
-              Credenziali di default:
-            </p>
-            <div className="bg-dark-900 rounded-lg p-3 text-center">
-              <p className="text-sm text-dark-300">
-                <span className="text-dark-500">Username:</span>{' '}
-                <span className="font-mono text-primary-400">admin</span>
-              </p>
-              <p className="text-sm text-dark-300">
-                <span className="text-dark-500">Password:</span>{' '}
-                <span className="font-mono text-primary-400">admin123</span>
-              </p>
-            </div>
-          </div>
         </div>
 
         {/* Footer */}
