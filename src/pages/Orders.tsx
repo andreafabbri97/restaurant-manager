@@ -345,25 +345,27 @@ export function Orders() {
                           </p>
                         )}
 
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => viewOrderDetails(order)}
-                            className="btn-ghost btn-sm flex-1"
-                          >
-                            <Eye className="w-4 h-4" />
-                            Dettagli
-                          </button>
-                          <button
-                            onClick={() => openEditModal(order)}
-                            className="btn-secondary btn-sm"
-                            title="Modifica ordine"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </button>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => viewOrderDetails(order)}
+                              className="btn-ghost btn-sm flex-1"
+                            >
+                              <Eye className="w-4 h-4" />
+                              Dettagli
+                            </button>
+                            <button
+                              onClick={() => openEditModal(order)}
+                              className="btn-secondary btn-sm"
+                              title="Modifica ordine"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                          </div>
                           {config.next && (
                             <button
                               onClick={() => handleStatusChange(order)}
-                              className="btn-success btn-sm flex-1"
+                              className="btn-success btn-sm w-full"
                             >
                               <CheckCircle className="w-4 h-4" />
                               {status === 'pending'

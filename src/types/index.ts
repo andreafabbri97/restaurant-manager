@@ -314,3 +314,20 @@ export interface DishIngredientCost {
   unit_cost: number;
   total_cost: number;
 }
+
+// ============== FATTURE ==============
+export interface Invoice {
+  id: number;
+  date: string;
+  invoice_number: string;
+  supplier_name: string;
+  description: string;
+  amount: number;
+  vat_amount: number;
+  total: number;
+  category: string;
+  paid: boolean;
+  payment_date?: string;
+  notes?: string;
+  created_at: string;
+}

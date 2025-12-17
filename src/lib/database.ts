@@ -21,6 +21,7 @@ import type {
   Receipt,
   DishCost,
   DishIngredientCost,
+  Invoice,
 } from '../types';
 
 // Local storage fallback for demo mode
@@ -1611,4 +1612,109 @@ export async function getDishCostSummary(): Promise<{
     lowMarginDishes,
     dishesWithoutRecipe,
   };
+}
+
+// ============== FATTURE ==============
+export async function getInvoices(startDate?: string, endDate?: string): Promise<Invoice[]> {
+  if (isSupabaseConfigured && supabase) {
+    let query = supabase.from('invoices').select('*').order('date', { ascending: false });
+    if (startDate) query = query.gte('date', startDate);
+    if (endDate) query = query.lte('date', endDate);
+    const { data, error } = await query;
+    if (error) throw error;
+    return data || [];
+  }
+  let invoices = getLocalData<Invoice[]>('invoices', []);
+  if (startDate) invoices = invoices.filter(i => i.date >= startDate);
+  if (endDate) invoices = invoices.filter(i => i.date <= endDate);
+  return invoices.sort((a, b) => b.date.localeCompare(a.date));
+}
+
+export async function createInvoice(invoice: Omit<Invoice, 'id' | 'created_at'>): Promise<Invoice> {
+  if (isSupabaseConfigured && supabase) {
+    const { data, error } = await supabase.from('invoices').insert(invoice).select().single();
+    if (error) throw error;
+    return data;
+  }
+  const invoices = getLocalData<Invoice[]>('invoices', []);
+  const newInvoice: Invoice = {
+    ...invoice,
+    id: Date.now(),
+    created_at: new Date().toISOString(),
+  };
+  setLocalData('invoices', [...invoices, newInvoice]);
+  return newInvoice;
+}
+
+export async function updateInvoice(id: number, updates: Partial<Omit<Invoice, 'id' | 'created_at'>>): Promise<void> {
+  if (isSupabaseConfigured && supabase) {
+    const { error } = await supabase.from('invoices').update(updates).eq('id', id);
+    if (error) throw error;
+    return;
+  }
+  const invoices = getLocalData<Invoice[]>('invoices', []);
+  const index = invoices.findIndex(i => i.id === id);
+  if (index !== -1) {
+    invoices[index] = { ...invoices[index], ...updates };
+    setLocalData('invoices', invoices);
+  }
+}
+
+export async function deleteInvoice(id: number): Promise<void> {
+  if (isSupabaseConfigured && supabase) {
+    const { error } = await supabase.from('invoices').delete().eq('id', id);
+    if (error) throw error;
+    return;
+  }
+  const invoices = getLocalData<Invoice[]>('invoices', []);
+  setLocalData('invoices', invoices.filter(i => i.id !== id));
+}
+
+// ============== STATS PER PERIODO ==============
+export async function getStatsForPeriod(startDate: string, endDate: string): Promise<{
+  dailyStats: { date: string; orders: number; revenue: number }[];
+  revenueByPaymentMethod: { method: string; total: number }[];
+  ordersByType: { type: string; count: number }[];
+}> {
+  const orders = await getOrders();
+  const periodOrders = orders.filter(
+    o => o.date >= startDate && o.date <= endDate && o.status !== 'cancelled'
+  );
+
+  // Daily stats
+  const dailyMap: Record<string, { orders: number; revenue: number }> = {};
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+    const dateStr = d.toISOString().split('T')[0];
+    dailyMap[dateStr] = { orders: 0, revenue: 0 };
+  }
+
+  for (const order of periodOrders) {
+    if (dailyMap[order.date]) {
+      dailyMap[order.date].orders++;
+      dailyMap[order.date].revenue += order.total;
+    }
+  }
+
+  const dailyStats = Object.entries(dailyMap)
+    .map(([date, stats]) => ({ date, ...stats }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  // Revenue by payment method
+  const paymentMap: Record<string, number> = { cash: 0, card: 0, online: 0 };
+  for (const order of periodOrders) {
+    paymentMap[order.payment_method] = (paymentMap[order.payment_method] || 0) + order.total;
+  }
+  const revenueByPaymentMethod = Object.entries(paymentMap).map(([method, total]) => ({ method, total }));
+
+  // Orders by type
+  const typeMap: Record<string, number> = { dine_in: 0, takeaway: 0, delivery: 0 };
+  for (const order of periodOrders) {
+    typeMap[order.order_type] = (typeMap[order.order_type] || 0) + 1;
+  }
+  const ordersByType = Object.entries(typeMap).map(([type, count]) => ({ type, count }));
+
+  return { dailyStats, revenueByPaymentMethod, ordersByType };
 }
