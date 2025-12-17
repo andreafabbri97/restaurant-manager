@@ -423,6 +423,62 @@ export async function updateOrderStatus(id: number, status: Order['status']): Pr
   return orders[index];
 }
 
+export async function updateOrder(
+  id: number,
+  orderUpdates: Partial<Omit<Order, 'id' | 'created_at'>>,
+  newItems?: Omit<OrderItem, 'id' | 'order_id'>[]
+): Promise<Order> {
+  if (isSupabaseConfigured && supabase) {
+    // Aggiorna l'ordine
+    const { data: orderData, error: orderError } = await supabase
+      .from('orders')
+      .update(orderUpdates)
+      .eq('id', id)
+      .select()
+      .single();
+    if (orderError) throw orderError;
+
+    // Se ci sono nuovi items, sostituisci quelli esistenti
+    if (newItems) {
+      // Elimina i vecchi items
+      await supabase.from('order_items').delete().eq('order_id', id);
+
+      // Inserisci i nuovi items
+      const orderItems = newItems.map(item => ({ ...item, order_id: id }));
+      const { error: itemsError } = await supabase.from('order_items').insert(orderItems);
+      if (itemsError) throw itemsError;
+    }
+
+    return orderData;
+  }
+
+  // LocalStorage mode
+  const orders = getLocalData<Order[]>('orders', []);
+  const index = orders.findIndex(o => o.id === id);
+
+  if (index !== -1) {
+    orders[index] = { ...orders[index], ...orderUpdates };
+    setLocalData('orders', orders);
+
+    if (newItems) {
+      const orderItems = getLocalData<OrderItem[]>('order_items', []);
+      // Rimuovi vecchi items
+      const filteredItems = orderItems.filter(i => i.order_id !== id);
+      // Aggiungi nuovi items
+      const newOrderItems = newItems.map((item, idx) => ({
+        ...item,
+        id: Date.now() + idx + 1,
+        order_id: id,
+      }));
+      setLocalData('order_items', [...filteredItems, ...newOrderItems]);
+    }
+
+    return orders[index];
+  }
+
+  throw new Error('Ordine non trovato');
+}
+
 export async function deleteOrder(id: number): Promise<void> {
   if (isSupabaseConfigured && supabase) {
     await supabase.from('order_items').delete().eq('order_id', id);

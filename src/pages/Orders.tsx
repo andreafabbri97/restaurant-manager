@@ -12,12 +12,13 @@ import {
   RefreshCw,
   Wifi,
   WifiOff,
+  Edit2,
 } from 'lucide-react';
-import { getOrders, getOrderItems, updateOrderStatus, deleteOrder } from '../lib/database';
+import { getOrders, getOrderItems, updateOrderStatus, deleteOrder, updateOrder, getTables } from '../lib/database';
 import { showToast } from '../components/ui/Toast';
 import { Modal } from '../components/ui/Modal';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
-import type { Order, OrderItem } from '../types';
+import type { Order, OrderItem, Table } from '../types';
 
 const statusConfig = {
   pending: { label: 'In Attesa', icon: Clock, color: 'badge-warning', next: 'preparing' },
@@ -43,6 +44,20 @@ export function Orders() {
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [showDetails, setShowDetails] = useState(false);
   const [isRealtimeConnected, setIsRealtimeConnected] = useState(false);
+
+  // Edit modal state
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [tables, setTables] = useState<Table[]>([]);
+  const [editForm, setEditForm] = useState({
+    order_type: 'dine_in' as Order['order_type'],
+    table_id: undefined as number | undefined,
+    payment_method: 'cash' as Order['payment_method'],
+    customer_name: '',
+    customer_phone: '',
+    notes: '',
+    smac_passed: false,
+    status: 'pending' as Order['status'],
+  });
 
   const loadOrdersCallback = useCallback(async () => {
     setLoading(true);
@@ -128,6 +143,56 @@ export function Orders() {
     } catch (error) {
       console.error('Error loading order items:', error);
       showToast('Errore nel caricamento dettagli', 'error');
+    }
+  }
+
+  async function openEditModal(order: Order) {
+    setSelectedOrder(order);
+    setEditForm({
+      order_type: order.order_type,
+      table_id: order.table_id,
+      payment_method: order.payment_method,
+      customer_name: order.customer_name || '',
+      customer_phone: order.customer_phone || '',
+      notes: order.notes || '',
+      smac_passed: order.smac_passed,
+      status: order.status,
+    });
+
+    // Carica tavoli se non già caricati
+    if (tables.length === 0) {
+      try {
+        const tablesData = await getTables();
+        setTables(tablesData);
+      } catch (error) {
+        console.error('Error loading tables:', error);
+      }
+    }
+
+    setShowEditModal(true);
+  }
+
+  async function handleSaveEdit() {
+    if (!selectedOrder) return;
+
+    try {
+      await updateOrder(selectedOrder.id, {
+        order_type: editForm.order_type,
+        table_id: editForm.order_type === 'dine_in' ? editForm.table_id : undefined,
+        payment_method: editForm.payment_method,
+        customer_name: editForm.customer_name || undefined,
+        customer_phone: editForm.customer_phone || undefined,
+        notes: editForm.notes || undefined,
+        smac_passed: editForm.smac_passed,
+        status: editForm.status,
+      });
+
+      showToast('Ordine modificato con successo', 'success');
+      setShowEditModal(false);
+      loadOrdersCallback();
+    } catch (error) {
+      console.error('Error updating order:', error);
+      showToast('Errore nella modifica', 'error');
     }
   }
 
@@ -288,6 +353,13 @@ export function Orders() {
                             <Eye className="w-4 h-4" />
                             Dettagli
                           </button>
+                          <button
+                            onClick={() => openEditModal(order)}
+                            className="btn-secondary btn-sm"
+                            title="Modifica ordine"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
                           {config.next && (
                             <button
                               onClick={() => handleStatusChange(order)}
@@ -410,6 +482,16 @@ export function Orders() {
 
             {/* Actions */}
             <div className="flex items-center gap-3 pt-4">
+              <button
+                onClick={() => {
+                  setShowDetails(false);
+                  openEditModal(selectedOrder);
+                }}
+                className="btn-secondary flex-1"
+              >
+                <Edit2 className="w-5 h-5" />
+                Modifica
+              </button>
               {statusConfig[selectedOrder.status].next && (
                 <button
                   onClick={() => {
@@ -434,6 +516,152 @@ export function Orders() {
             </div>
           </div>
         )}
+      </Modal>
+
+      {/* Edit Order Modal */}
+      <Modal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        title={`Modifica Ordine #${selectedOrder?.id}`}
+        size="lg"
+      >
+        <div className="space-y-4">
+          {/* Tipo ordine */}
+          <div>
+            <label className="label">Tipo Ordine</label>
+            <div className="grid grid-cols-3 gap-2">
+              {(['dine_in', 'takeaway', 'delivery'] as const).map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => setEditForm({ ...editForm, order_type: type })}
+                  className={`p-3 rounded-xl border-2 transition-all ${
+                    editForm.order_type === type
+                      ? 'border-primary-500 bg-primary-500/20 text-primary-400'
+                      : 'border-dark-600 hover:border-dark-500 text-dark-300'
+                  }`}
+                >
+                  {orderTypeLabels[type]}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Tavolo (solo se dine_in) */}
+          {editForm.order_type === 'dine_in' && (
+            <div>
+              <label className="label">Tavolo</label>
+              <select
+                value={editForm.table_id || ''}
+                onChange={(e) => setEditForm({ ...editForm, table_id: e.target.value ? Number(e.target.value) : undefined })}
+                className="select"
+              >
+                <option value="">Seleziona tavolo</option>
+                {tables.map((table) => (
+                  <option key={table.id} value={table.id}>
+                    {table.name} ({table.capacity} posti)
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Cliente */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="label">Nome Cliente</label>
+              <input
+                type="text"
+                value={editForm.customer_name}
+                onChange={(e) => setEditForm({ ...editForm, customer_name: e.target.value })}
+                className="input"
+                placeholder="Nome cliente"
+              />
+            </div>
+            <div>
+              <label className="label">Telefono</label>
+              <input
+                type="tel"
+                value={editForm.customer_phone}
+                onChange={(e) => setEditForm({ ...editForm, customer_phone: e.target.value })}
+                className="input"
+                placeholder="Telefono"
+              />
+            </div>
+          </div>
+
+          {/* Metodo pagamento */}
+          <div>
+            <label className="label">Metodo Pagamento</label>
+            <div className="grid grid-cols-3 gap-2">
+              {(['cash', 'card', 'online'] as const).map((method) => (
+                <button
+                  key={method}
+                  type="button"
+                  onClick={() => setEditForm({ ...editForm, payment_method: method })}
+                  className={`p-3 rounded-xl border-2 transition-all ${
+                    editForm.payment_method === method
+                      ? 'border-primary-500 bg-primary-500/20 text-primary-400'
+                      : 'border-dark-600 hover:border-dark-500 text-dark-300'
+                  }`}
+                >
+                  {method === 'cash' ? 'Contanti' : method === 'card' ? 'Carta' : 'Online'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Stato */}
+          <div>
+            <label className="label">Stato Ordine</label>
+            <select
+              value={editForm.status}
+              onChange={(e) => setEditForm({ ...editForm, status: e.target.value as Order['status'] })}
+              className="select"
+            >
+              <option value="pending">In Attesa</option>
+              <option value="preparing">In Preparazione</option>
+              <option value="ready">Pronto</option>
+              <option value="delivered">Consegnato</option>
+              <option value="cancelled">Annullato</option>
+            </select>
+          </div>
+
+          {/* SMAC */}
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              id="smac_edit"
+              checked={editForm.smac_passed}
+              onChange={(e) => setEditForm({ ...editForm, smac_passed: e.target.checked })}
+              className="w-5 h-5 rounded border-dark-600 text-primary-500 focus:ring-primary-500"
+            />
+            <label htmlFor="smac_edit" className="text-white cursor-pointer">
+              SMAC Passata
+            </label>
+          </div>
+
+          {/* Note */}
+          <div>
+            <label className="label">Note</label>
+            <textarea
+              value={editForm.notes}
+              onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
+              className="input min-h-[80px]"
+              placeholder="Note aggiuntive..."
+            />
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-3 pt-4">
+            <button onClick={handleSaveEdit} className="btn-primary flex-1">
+              Salva Modifiche
+            </button>
+            <button onClick={() => setShowEditModal(false)} className="btn-secondary">
+              Annulla
+            </button>
+          </div>
+        </div>
       </Modal>
     </div>
   );
