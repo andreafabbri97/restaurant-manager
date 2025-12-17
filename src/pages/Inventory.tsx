@@ -926,7 +926,7 @@ export function Inventory() {
           setSupplyForm({ date: new Date().toISOString().split('T')[0], supplier_name: '', notes: '' });
         }}
         title="Nuova Fornitura"
-        size="lg"
+        size="full"
       >
         <div className="space-y-4">
           {/* Supply Info */}
@@ -966,8 +966,9 @@ export function Inventory() {
           {/* Add Item Form */}
           <div className="border-t border-dark-700 pt-4">
             <h3 className="font-semibold text-white mb-3">Aggiungi Ingrediente</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3">
-              <div className="sm:col-span-2 lg:col-span-5">
+            <div className="space-y-3">
+              {/* Ingrediente - sempre full width */}
+              <div>
                 <label className="label">Ingrediente</label>
                 <select
                   value={newSupplyItem.ingredient_id}
@@ -991,32 +992,34 @@ export function Inventory() {
                     ))}
                 </select>
               </div>
-              <div className="lg:col-span-3">
-                <label className="label">Quantità</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={newSupplyItem.quantity}
-                  onChange={(e) => setNewSupplyItem({ ...newSupplyItem, quantity: e.target.value })}
-                  className="input"
-                  placeholder="0.00"
-                />
-              </div>
-              <div className="lg:col-span-3">
-                <label className="label">Costo Unitario (€)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={newSupplyItem.unit_cost}
-                  onChange={(e) => setNewSupplyItem({ ...newSupplyItem, unit_cost: e.target.value })}
-                  className="input"
-                  placeholder="0.00"
-                />
-              </div>
-              <div className="lg:col-span-1 flex items-end">
+
+              {/* Quantità e Costo su stessa riga + pulsante */}
+              <div className="flex items-end gap-3">
+                <div className="flex-1">
+                  <label className="label">Quantità</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={newSupplyItem.quantity}
+                    onChange={(e) => setNewSupplyItem({ ...newSupplyItem, quantity: e.target.value })}
+                    className="input"
+                    placeholder="0.00"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="label">Costo (€)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={newSupplyItem.unit_cost}
+                    onChange={(e) => setNewSupplyItem({ ...newSupplyItem, unit_cost: e.target.value })}
+                    className="input"
+                    placeholder="0.00"
+                  />
+                </div>
                 <button
                   onClick={handleAddSupplyItem}
-                  className="btn-primary w-full h-[42px]"
+                  className="btn-primary h-[42px] px-4"
                   title="Aggiungi ingrediente"
                 >
                   <Plus className="w-5 h-5" />
