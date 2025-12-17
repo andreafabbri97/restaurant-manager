@@ -730,6 +730,30 @@ export async function createExpense(expense: Omit<Expense, 'id'>): Promise<Expen
   return newExpense;
 }
 
+export async function updateExpense(id: number, updates: Partial<Omit<Expense, 'id'>>): Promise<void> {
+  if (isSupabaseConfigured && supabase) {
+    const { error } = await supabase.from('expenses').update(updates).eq('id', id);
+    if (error) throw error;
+    return;
+  }
+  const expenses = getLocalData<Expense[]>('expenses', []);
+  const index = expenses.findIndex(e => e.id === id);
+  if (index !== -1) {
+    expenses[index] = { ...expenses[index], ...updates };
+    setLocalData('expenses', expenses);
+  }
+}
+
+export async function deleteExpense(id: number): Promise<void> {
+  if (isSupabaseConfigured && supabase) {
+    const { error } = await supabase.from('expenses').delete().eq('id', id);
+    if (error) throw error;
+    return;
+  }
+  const expenses = getLocalData<Expense[]>('expenses', []);
+  setLocalData('expenses', expenses.filter(e => e.id !== id));
+}
+
 // ============== SETTINGS ==============
 export async function getSettings(): Promise<Settings> {
   if (isSupabaseConfigured && supabase) {
