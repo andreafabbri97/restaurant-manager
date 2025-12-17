@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Plus,
@@ -10,10 +10,13 @@ import {
   Eye,
   Trash2,
   RefreshCw,
+  Wifi,
+  WifiOff,
 } from 'lucide-react';
 import { getOrders, getOrderItems, updateOrderStatus, deleteOrder } from '../lib/database';
 import { showToast } from '../components/ui/Toast';
 import { Modal } from '../components/ui/Modal';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import type { Order, OrderItem } from '../types';
 
 const statusConfig = {
@@ -39,12 +42,9 @@ export function Orders() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [showDetails, setShowDetails] = useState(false);
+  const [isRealtimeConnected, setIsRealtimeConnected] = useState(false);
 
-  useEffect(() => {
-    loadOrders();
-  }, [selectedDate]);
-
-  async function loadOrders() {
+  const loadOrdersCallback = useCallback(async () => {
     setLoading(true);
     try {
       const data = await getOrders(selectedDate);
@@ -55,7 +55,42 @@ export function Orders() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [selectedDate]);
+
+  useEffect(() => {
+    loadOrdersCallback();
+  }, [loadOrdersCallback]);
+
+  // Supabase Realtime subscription
+  useEffect(() => {
+    if (!isSupabaseConfigured || !supabase) return;
+
+    const channel = supabase
+      .channel('orders-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'orders',
+        },
+        (payload) => {
+          console.log('Realtime update:', payload);
+          // Reload orders when any change occurs
+          loadOrdersCallback();
+        }
+      )
+      .subscribe((status) => {
+        console.log('Realtime status:', status);
+        setIsRealtimeConnected(status === 'SUBSCRIBED');
+      });
+
+    return () => {
+      if (supabase) {
+        supabase.removeChannel(channel);
+      }
+    };
+  }, [loadOrdersCallback]);
 
   async function handleStatusChange(order: Order) {
     const config = statusConfig[order.status];
@@ -64,7 +99,7 @@ export function Orders() {
     try {
       await updateOrderStatus(order.id, config.next as Order['status']);
       showToast(`Ordine #${order.id} aggiornato`, 'success');
-      loadOrders();
+      loadOrdersCallback();
     } catch (error) {
       console.error('Error updating order:', error);
       showToast('Errore nell\'aggiornamento', 'error');
@@ -77,7 +112,7 @@ export function Orders() {
     try {
       await deleteOrder(orderId);
       showToast('Ordine eliminato', 'success');
-      loadOrders();
+      loadOrdersCallback();
     } catch (error) {
       console.error('Error deleting order:', error);
       showToast('Errore nell\'eliminazione', 'error');
@@ -125,7 +160,27 @@ export function Orders() {
           <p className="text-dark-400 mt-1">Gestisci gli ordini del ristorante</p>
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={loadOrders} className="btn-secondary">
+          {/* Realtime connection status */}
+          {isSupabaseConfigured && (
+            <div className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm ${
+              isRealtimeConnected
+                ? 'bg-emerald-500/20 text-emerald-400'
+                : 'bg-amber-500/20 text-amber-400'
+            }`}>
+              {isRealtimeConnected ? (
+                <>
+                  <Wifi className="w-4 h-4" />
+                  <span className="hidden sm:inline">Live</span>
+                </>
+              ) : (
+                <>
+                  <WifiOff className="w-4 h-4" />
+                  <span className="hidden sm:inline">Offline</span>
+                </>
+              )}
+            </div>
+          )}
+          <button onClick={loadOrdersCallback} className="btn-secondary">
             <RefreshCw className="w-5 h-5" />
           </button>
           <Link to="/orders/new" className="btn-primary">
