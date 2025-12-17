@@ -1615,27 +1615,21 @@ export async function getDishCostSummary(): Promise<{
 }
 
 // ============== FATTURE ==============
-export async function getInvoices(startDate?: string, endDate?: string): Promise<Invoice[]> {
-  if (isSupabaseConfigured && supabase) {
-    let query = supabase.from('invoices').select('*').order('date', { ascending: false });
-    if (startDate) query = query.gte('date', startDate);
-    if (endDate) query = query.lte('date', endDate);
-    const { data, error } = await query;
-    if (error) throw error;
-    return data || [];
-  }
+// Nota: le fatture usano localStorage per ora (la tabella Supabase può essere aggiunta in seguito)
+
+function getInvoicesFromLocal(startDate?: string, endDate?: string): Invoice[] {
   let invoices = getLocalData<Invoice[]>('invoices', []);
   if (startDate) invoices = invoices.filter(i => i.date >= startDate);
   if (endDate) invoices = invoices.filter(i => i.date <= endDate);
   return invoices.sort((a, b) => b.date.localeCompare(a.date));
 }
 
+export async function getInvoices(startDate?: string, endDate?: string): Promise<Invoice[]> {
+  // Usa sempre localStorage per le fatture (tabella Supabase opzionale)
+  return getInvoicesFromLocal(startDate, endDate);
+}
+
 export async function createInvoice(invoice: Omit<Invoice, 'id' | 'created_at'>): Promise<Invoice> {
-  if (isSupabaseConfigured && supabase) {
-    const { data, error } = await supabase.from('invoices').insert(invoice).select().single();
-    if (error) throw error;
-    return data;
-  }
   const invoices = getLocalData<Invoice[]>('invoices', []);
   const newInvoice: Invoice = {
     ...invoice,
@@ -1647,11 +1641,6 @@ export async function createInvoice(invoice: Omit<Invoice, 'id' | 'created_at'>)
 }
 
 export async function updateInvoice(id: number, updates: Partial<Omit<Invoice, 'id' | 'created_at'>>): Promise<void> {
-  if (isSupabaseConfigured && supabase) {
-    const { error } = await supabase.from('invoices').update(updates).eq('id', id);
-    if (error) throw error;
-    return;
-  }
   const invoices = getLocalData<Invoice[]>('invoices', []);
   const index = invoices.findIndex(i => i.id === id);
   if (index !== -1) {
@@ -1661,11 +1650,6 @@ export async function updateInvoice(id: number, updates: Partial<Omit<Invoice, '
 }
 
 export async function deleteInvoice(id: number): Promise<void> {
-  if (isSupabaseConfigured && supabase) {
-    const { error } = await supabase.from('invoices').delete().eq('id', id);
-    if (error) throw error;
-    return;
-  }
   const invoices = getLocalData<Invoice[]>('invoices', []);
   setLocalData('invoices', invoices.filter(i => i.id !== id));
 }
