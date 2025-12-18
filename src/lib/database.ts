@@ -744,14 +744,27 @@ export async function createWorkShift(shift: Omit<WorkShift, 'id'>): Promise<Wor
 // ============== RESERVATIONS ==============
 export async function getReservations(date?: string): Promise<Reservation[]> {
   if (isSupabaseConfigured && supabase) {
-    let query = supabase.from('reservations').select('*, tables(name)').order('date').order('time');
+    // Prima ottieni tutte le prenotazioni
+    let query = supabase.from('reservations').select('*').order('date').order('time');
     if (date) query = query.eq('date', date);
     const { data, error } = await query;
     if (error) throw error;
-    return (data || []).map(res => ({
-      ...res,
-      table_name: res.tables?.name,
-    }));
+
+    // Poi ottieni tutti i tavoli per costruire i nomi
+    const { data: tablesData } = await supabase.from('tables').select('id, name');
+    const tables = tablesData || [];
+
+    return (data || []).map(res => {
+      // Supporto multi-tavoli
+      const tableIds = res.table_ids && res.table_ids.length > 0 ? res.table_ids : [res.table_id];
+      const tableNames = tableIds.map((id: number) => tables.find(t => t.id === id)?.name || '').filter(Boolean);
+      return {
+        ...res,
+        table_ids: tableIds,
+        table_name: tableNames.join(' + ') || tables.find(t => t.id === res.table_id)?.name,
+        table_names: tableNames,
+      };
+    });
   }
   let reservations = getLocalData<Reservation[]>('reservations', []);
   console.log('Raw reservations from localStorage:', reservations);
@@ -774,12 +787,12 @@ export async function getReservations(date?: string): Promise<Reservation[]> {
 
 export async function createReservation(reservation: Omit<Reservation, 'id'>): Promise<Reservation> {
   if (isSupabaseConfigured && supabase) {
-    // Per Supabase, escludi table_ids e table_names (non esistono nel DB)
-    // Salva solo il primo table_id per retrocompatibilità
-    const { table_ids, table_names, ...reservationWithoutArrays } = reservation;
+    // Salva table_ids come array (richiede colonna table_ids di tipo integer[] in Supabase)
+    const { table_names, ...reservationData } = reservation;
     const { data, error } = await supabase.from('reservations').insert({
-      ...reservationWithoutArrays,
-      table_id: table_ids?.[0] || reservation.table_id,
+      ...reservationData,
+      table_id: reservation.table_ids?.[0] || reservation.table_id,
+      table_ids: reservation.table_ids || [reservation.table_id],
     }).select().single();
     if (error) throw error;
     return data;
@@ -792,13 +805,14 @@ export async function createReservation(reservation: Omit<Reservation, 'id'>): P
 
 export async function updateReservation(id: number, updates: Partial<Omit<Reservation, 'id'>>): Promise<Reservation> {
   if (isSupabaseConfigured && supabase) {
-    // Per Supabase, escludi table_ids e table_names (non esistono nel DB)
-    const { table_ids, table_names, ...updatesWithoutArrays } = updates;
+    // Aggiorna anche table_ids su Supabase
+    const { table_names, ...updatesData } = updates;
     const { data, error } = await supabase
       .from('reservations')
       .update({
-        ...updatesWithoutArrays,
-        table_id: table_ids?.[0] || updates.table_id,
+        ...updatesData,
+        table_id: updates.table_ids?.[0] || updates.table_id,
+        table_ids: updates.table_ids || (updates.table_id ? [updates.table_id] : undefined),
       })
       .eq('id', id)
       .select()
