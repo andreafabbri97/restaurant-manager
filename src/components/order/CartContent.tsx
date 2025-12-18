@@ -23,6 +23,7 @@ interface CartContentProps {
   setOrderType: (type: OrderType) => void;
   selectedTable: number | null;
   setSelectedTable: (id: number) => void;
+  onTableSelect?: (id: number) => void; // Per rilevamento conto aperto
   tables: Table[];
   customerName: string;
   setCustomerName: (name: string) => void;
@@ -60,6 +61,7 @@ export function CartContent({
   setOrderType,
   selectedTable,
   setSelectedTable,
+  onTableSelect,
   tables,
   customerName,
   setCustomerName,
@@ -153,7 +155,7 @@ export function CartContent({
                 {tables.map((table) => (
                   <button
                     key={table.id}
-                    onClick={() => setSelectedTable(table.id)}
+                    onClick={() => onTableSelect ? onTableSelect(table.id) : setSelectedTable(table.id)}
                     className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                       selectedTable === table.id
                         ? 'bg-primary-500 text-dark-900'

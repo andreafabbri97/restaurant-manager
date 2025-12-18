@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ShoppingCart, ChevronUp, X } from 'lucide-react';
+import { ShoppingCart, ChevronUp, X, Users, Clock, AlertCircle } from 'lucide-react';
 import {
   getCategories,
   getMenuItems,
@@ -10,10 +10,13 @@ import {
   getTableSession,
   getNextOrderNumber,
   updateSessionTotal,
+  getActiveSessionForTable,
+  getSessionOrders,
 } from '../lib/database';
 import { showToast } from '../components/ui/Toast';
 import { CartContent } from '../components/order/CartContent';
-import type { Category, MenuItem, Table, CartItem, Settings, TableSession } from '../types';
+import { Modal } from '../components/ui/Modal';
+import type { Category, MenuItem, Table, CartItem, Settings, TableSession, Order } from '../types';
 
 type OrderType = 'dine_in' | 'takeaway' | 'delivery';
 type PaymentMethod = 'cash' | 'card' | 'online';
@@ -45,6 +48,12 @@ export function NewOrder() {
 
   // Mobile cart panel state
   const [mobileCartOpen, setMobileCartOpen] = useState(false);
+
+  // Modal per conto aperto rilevato
+  const [showSessionDetectedModal, setShowSessionDetectedModal] = useState(false);
+  const [detectedSession, setDetectedSession] = useState<TableSession | null>(null);
+  const [detectedSessionOrders, setDetectedSessionOrders] = useState<Order[]>([]);
+  const [pendingTableId, setPendingTableId] = useState<number | null>(null);
 
   // Leggi parametri URL per sessione
   const sessionIdParam = searchParams.get('session');
@@ -150,6 +159,61 @@ export function NewOrder() {
     setExpandedItemId(null);
   }
 
+  // Gestisce la selezione del tavolo con rilevamento conto aperto
+  async function handleTableSelect(tableId: number) {
+    // Se siamo già in una sessione (da URL), non fare nulla
+    if (activeSession) return;
+
+    // Controlla se il tavolo ha un conto aperto
+    const existingSession = await getActiveSessionForTable(tableId);
+
+    if (existingSession) {
+      // Carica gli ordini della sessione per mostrare i dettagli
+      const orders = await getSessionOrders(existingSession.id);
+      setDetectedSession(existingSession);
+      setDetectedSessionOrders(orders);
+      setPendingTableId(tableId);
+      setShowSessionDetectedModal(true);
+    } else {
+      // Nessuna sessione, seleziona normalmente il tavolo
+      setSelectedTable(tableId);
+      setActiveSession(null);
+    }
+  }
+
+  // Conferma aggiunta al conto esistente
+  async function confirmAddToSession() {
+    if (!detectedSession || !pendingTableId) return;
+
+    setActiveSession(detectedSession);
+    setSelectedTable(pendingTableId);
+    setOrderType('dine_in');
+    const orderNum = await getNextOrderNumber(detectedSession.id);
+    setNextOrderNumber(orderNum);
+
+    // Precompila cliente se presente nella sessione
+    if (detectedSession.customer_name) setCustomerName(detectedSession.customer_name);
+    if (detectedSession.customer_phone) setCustomerPhone(detectedSession.customer_phone);
+
+    setShowSessionDetectedModal(false);
+    setDetectedSession(null);
+    setDetectedSessionOrders([]);
+    setPendingTableId(null);
+
+    showToast('Comanda associata al conto aperto', 'success');
+  }
+
+  // Rifiuta e crea ordine senza sessione (ordine singolo)
+  function cancelAddToSession() {
+    if (pendingTableId) {
+      setSelectedTable(pendingTableId);
+    }
+    setShowSessionDetectedModal(false);
+    setDetectedSession(null);
+    setDetectedSessionOrders([]);
+    setPendingTableId(null);
+  }
+
   async function submitOrder() {
     if (cart.length === 0) {
       showToast('Aggiungi almeno un prodotto', 'warning');
@@ -227,6 +291,7 @@ export function NewOrder() {
     setOrderType: isSessionOrder ? () => {} : setOrderType, // Blocca cambio tipo per sessioni
     selectedTable,
     setSelectedTable: isSessionOrder ? () => {} : setSelectedTable, // Blocca cambio tavolo per sessioni
+    onTableSelect: isSessionOrder ? undefined : handleTableSelect, // Funzione per selezione tavolo con rilevamento sessione
     tables,
     customerName,
     setCustomerName,
@@ -444,6 +509,95 @@ export function NewOrder() {
           padding-bottom: env(safe-area-inset-bottom, 12px);
         }
       `}</style>
+
+      {/* Modal rilevamento conto aperto */}
+      <Modal
+        isOpen={showSessionDetectedModal}
+        onClose={() => setShowSessionDetectedModal(false)}
+        title="Conto Aperto Rilevato"
+        size="md"
+      >
+        {detectedSession && (
+          <div className="space-y-6">
+            {/* Alert */}
+            <div className="flex items-start gap-3 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl">
+              <AlertCircle className="w-6 h-6 text-amber-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-medium text-amber-400">
+                  Questo tavolo ha già un conto aperto
+                </p>
+                <p className="text-sm text-dark-300 mt-1">
+                  Vuoi aggiungere la comanda al conto esistente?
+                </p>
+              </div>
+            </div>
+
+            {/* Session Info */}
+            <div className="p-4 bg-dark-900 rounded-xl">
+              <h3 className="font-semibold text-white mb-3">
+                {detectedSession.table_name || `Tavolo ${detectedSession.table_id}`}
+              </h3>
+              <div className="grid grid-cols-3 gap-4 text-center">
+                <div>
+                  <div className="flex items-center justify-center gap-1 text-dark-400">
+                    <Users className="w-4 h-4" />
+                    <span className="text-sm">Coperti</span>
+                  </div>
+                  <p className="text-lg font-bold text-white">{detectedSession.covers}</p>
+                </div>
+                <div>
+                  <div className="flex items-center justify-center gap-1 text-dark-400">
+                    <Clock className="w-4 h-4" />
+                    <span className="text-sm">Comande</span>
+                  </div>
+                  <p className="text-lg font-bold text-white">{detectedSessionOrders.length}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-dark-400">Totale</p>
+                  <p className="text-lg font-bold text-primary-400">€{detectedSession.total.toFixed(2)}</p>
+                </div>
+              </div>
+
+              {detectedSession.customer_name && (
+                <p className="mt-3 text-sm text-dark-400">
+                  Cliente: <span className="text-white">{detectedSession.customer_name}</span>
+                </p>
+              )}
+
+              {/* Lista comande esistenti */}
+              {detectedSessionOrders.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-dark-700">
+                  <p className="text-sm text-dark-400 mb-2">Comande esistenti:</p>
+                  <div className="space-y-1 max-h-24 overflow-y-auto">
+                    {detectedSessionOrders.map((order) => (
+                      <div key={order.id} className="flex justify-between text-sm">
+                        <span className="text-dark-300">Comanda #{order.order_number || 1}</span>
+                        <span className="text-white">€{order.total.toFixed(2)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={confirmAddToSession}
+                className="btn-primary w-full py-3"
+              >
+                Sì, aggiungi al conto
+              </button>
+              <button
+                onClick={cancelAddToSession}
+                className="btn-secondary w-full"
+              >
+                No, crea ordine separato
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </>
   );
 }

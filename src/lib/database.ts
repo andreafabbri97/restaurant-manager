@@ -753,15 +753,26 @@ export async function getReservations(date?: string): Promise<Reservation[]> {
   let reservations = getLocalData<Reservation[]>('reservations', []);
   if (date) reservations = reservations.filter(r => r.date === date);
   const tables = getLocalData<Table[]>('tables', []);
-  return reservations.map(res => ({
-    ...res,
-    table_name: tables.find(t => t.id === res.table_id)?.name,
-  }));
+  return reservations.map(res => {
+    // Supporto multi-tavoli
+    const tableIds = res.table_ids || [res.table_id];
+    const tableNames = tableIds.map(id => tables.find(t => t.id === id)?.name || '').filter(Boolean);
+    return {
+      ...res,
+      table_name: tableNames.join(' + ') || tables.find(t => t.id === res.table_id)?.name,
+      table_names: tableNames,
+    };
+  });
 }
 
 export async function createReservation(reservation: Omit<Reservation, 'id'>): Promise<Reservation> {
   if (isSupabaseConfigured && supabase) {
-    const { data, error } = await supabase.from('reservations').insert(reservation).select().single();
+    // Per Supabase, salva solo il primo table_id (retrocompatibilità)
+    // In futuro si può aggiungere una colonna table_ids JSONB
+    const { data, error } = await supabase.from('reservations').insert({
+      ...reservation,
+      table_id: reservation.table_ids?.[0] || reservation.table_id,
+    }).select().single();
     if (error) throw error;
     return data;
   }

@@ -16,6 +16,9 @@ import {
   Globe,
   Split,
   ShoppingCart,
+  Link2,
+  CheckSquare,
+  Square,
 } from 'lucide-react';
 import {
   getTables,
@@ -82,6 +85,7 @@ export function Tables() {
   });
   const [reservationForm, setReservationForm] = useState({
     table_id: 0,
+    table_ids: [] as number[], // Supporto multi-tavoli
     date: new Date().toISOString().split('T')[0],
     time: '19:00',
     customer_name: '',
@@ -128,7 +132,11 @@ export function Tables() {
   }
 
   function getTableReservation(tableId: number): Reservation | undefined {
-    return reservations.find(r => r.table_id === tableId && r.status === 'confirmed');
+    return reservations.find(r => {
+      // Controlla se il tavolo è nella lista dei tavoli uniti o è il tavolo principale
+      const tableIds = r.table_ids || [r.table_id];
+      return tableIds.includes(tableId) && r.status === 'confirmed';
+    });
   }
 
   function openTableModal(table?: Table) {
@@ -146,9 +154,42 @@ export function Tables() {
     setReservationForm({
       ...reservationForm,
       table_id: tableId,
+      table_ids: [tableId], // Inizia con il tavolo selezionato
       date: selectedDate,
     });
     setShowReservationModal(true);
+  }
+
+  function toggleTableInReservation(tableId: number) {
+    setReservationForm(prev => {
+      const currentIds = prev.table_ids || [];
+      const isSelected = currentIds.includes(tableId);
+
+      if (isSelected) {
+        // Rimuovi il tavolo (ma mantieni almeno uno)
+        const newIds = currentIds.filter(id => id !== tableId);
+        return {
+          ...prev,
+          table_ids: newIds.length > 0 ? newIds : [tableId],
+          table_id: newIds.length > 0 ? newIds[0] : tableId,
+        };
+      } else {
+        // Aggiungi il tavolo
+        return {
+          ...prev,
+          table_ids: [...currentIds, tableId],
+          table_id: prev.table_id || tableId,
+        };
+      }
+    });
+  }
+
+  // Calcola capacità totale dei tavoli selezionati
+  function getSelectedTablesCapacity(): number {
+    const selectedIds = reservationForm.table_ids || [];
+    return tables
+      .filter(t => selectedIds.includes(t.id))
+      .reduce((sum, t) => sum + t.capacity, 0);
   }
 
   async function handleSaveTable() {
@@ -198,9 +239,15 @@ export function Tables() {
       return;
     }
 
+    if (reservationForm.table_ids.length === 0) {
+      showToast('Seleziona almeno un tavolo', 'warning');
+      return;
+    }
+
     try {
       await createReservation({
-        table_id: reservationForm.table_id,
+        table_id: reservationForm.table_ids[0], // Tavolo principale per retrocompatibilità
+        table_ids: reservationForm.table_ids,
         date: reservationForm.date,
         time: reservationForm.time,
         customer_name: reservationForm.customer_name.trim(),
@@ -214,6 +261,7 @@ export function Tables() {
       setShowReservationModal(false);
       setReservationForm({
         table_id: 0,
+        table_ids: [],
         date: selectedDate,
         time: '19:00',
         customer_name: '',
@@ -460,6 +508,7 @@ export function Tables() {
               key={table.id}
               onClick={() => handleTableClick(table.id)}
               className={`
+                group relative
                 ${status === 'available' ? 'table-available cursor-pointer hover:scale-105' : ''}
                 ${status === 'occupied' ? 'table-occupied cursor-pointer hover:scale-105' : ''}
                 ${status === 'reserved' ? 'table-reserved' : ''}
@@ -487,8 +536,15 @@ export function Tables() {
 
               {reservation && !session && (
                 <div className="mt-2 text-xs">
-                  <p>{reservation.customer_name}</p>
+                  <p className="truncate">{reservation.customer_name}</p>
                   <p>{reservation.time}</p>
+                  {/* Mostra icona se tavoli uniti */}
+                  {reservation.table_ids && reservation.table_ids.length > 1 && (
+                    <div className="flex items-center gap-1 mt-1 text-amber-400">
+                      <Link2 className="w-3 h-3" />
+                      <span>{reservation.table_ids.length} tavoli</span>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -703,6 +759,56 @@ export function Tables() {
                 className="input"
               />
             </div>
+          </div>
+
+          {/* Selezione tavoli - Multi-tavolo */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="label mb-0">
+                <Link2 className="w-4 h-4 inline mr-1" />
+                Tavoli
+              </label>
+              <span className="text-xs text-dark-400">
+                Capacità totale: <span className="text-primary-400 font-semibold">{getSelectedTablesCapacity()}</span> posti
+              </span>
+            </div>
+            <div className="grid grid-cols-3 gap-2 max-h-32 overflow-y-auto p-2 bg-dark-900 rounded-xl">
+              {tables.map((table) => {
+                const isSelected = reservationForm.table_ids.includes(table.id);
+                const tableStatus = getTableStatus(table.id);
+                const isAvailable = tableStatus === 'available';
+
+                return (
+                  <button
+                    key={table.id}
+                    type="button"
+                    onClick={() => isAvailable && toggleTableInReservation(table.id)}
+                    disabled={!isAvailable}
+                    className={`p-2 rounded-lg border-2 text-sm flex items-center gap-2 transition-all ${
+                      isSelected
+                        ? 'border-primary-500 bg-primary-500/10 text-white'
+                        : isAvailable
+                        ? 'border-dark-600 text-dark-300 hover:border-dark-500'
+                        : 'border-dark-700 text-dark-500 opacity-50 cursor-not-allowed'
+                    }`}
+                  >
+                    {isSelected ? (
+                      <CheckSquare className="w-4 h-4 text-primary-400" />
+                    ) : (
+                      <Square className="w-4 h-4" />
+                    )}
+                    <span className="flex-1 text-left truncate">{table.name}</span>
+                    <span className="text-xs text-dark-400">{table.capacity}p</span>
+                  </button>
+                );
+              })}
+            </div>
+            {reservationForm.table_ids.length > 1 && (
+              <p className="text-xs text-primary-400 mt-2 flex items-center gap-1">
+                <Link2 className="w-3 h-3" />
+                Tavoli uniti: {tables.filter(t => reservationForm.table_ids.includes(t.id)).map(t => t.name).join(' + ')}
+              </p>
+            )}
           </div>
 
           <div>

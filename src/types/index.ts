@@ -195,6 +195,9 @@ export interface Reservation {
   id: number;
   table_id: number;
   table_name?: string;
+  // Supporto per più tavoli uniti
+  table_ids?: number[]; // Array di ID tavoli uniti
+  table_names?: string[]; // Array di nomi tavoli uniti
   date: string;
   time: string;
   customer_name: string;
