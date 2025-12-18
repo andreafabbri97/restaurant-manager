@@ -907,7 +907,7 @@ export function Tables() {
                 Capacità totale: <span className="text-primary-400 font-semibold">{getSelectedTablesCapacity()}</span> posti
               </span>
             </div>
-            <div className="grid grid-cols-3 gap-2 max-h-32 overflow-y-auto p-2 bg-dark-900 rounded-xl">
+            <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-2 bg-dark-900 rounded-xl">
               {tables.map((table) => {
                 const isSelected = reservationForm.table_ids.includes(table.id);
                 const tableStatus = getTableStatus(table.id);
@@ -919,7 +919,7 @@ export function Tables() {
                     type="button"
                     onClick={() => isAvailable && toggleTableInReservation(table.id)}
                     disabled={!isAvailable}
-                    className={`p-2 rounded-lg border-2 text-sm flex items-center gap-2 transition-all ${
+                    className={`p-3 rounded-lg border-2 text-sm flex items-center gap-2 transition-all ${
                       isSelected
                         ? 'border-primary-500 bg-primary-500/10 text-white'
                         : isAvailable
@@ -928,12 +928,12 @@ export function Tables() {
                     }`}
                   >
                     {isSelected ? (
-                      <CheckSquare className="w-4 h-4 text-primary-400" />
+                      <CheckSquare className="w-4 h-4 text-primary-400 flex-shrink-0" />
                     ) : (
-                      <Square className="w-4 h-4" />
+                      <Square className="w-4 h-4 flex-shrink-0" />
                     )}
-                    <span className="flex-1 text-left truncate">{table.name}</span>
-                    <span className="text-xs text-dark-400">{table.capacity}p</span>
+                    <span className="flex-1 text-left">{table.name}</span>
+                    <span className="text-xs text-dark-400 flex-shrink-0">{table.capacity}p</span>
                   </button>
                 );
               })}
