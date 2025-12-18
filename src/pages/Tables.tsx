@@ -160,6 +160,21 @@ export function Tables() {
     setShowReservationModal(true);
   }
 
+  // Apri modal prenotazione senza tavolo preselezionato
+  function openReservationModalDirect() {
+    setReservationForm({
+      table_id: 0,
+      table_ids: [],
+      date: selectedDate,
+      time: '19:00',
+      customer_name: '',
+      phone: '',
+      guests: '2',
+      notes: '',
+    });
+    setShowReservationModal(true);
+  }
+
   function toggleTableInReservation(tableId: number) {
     setReservationForm(prev => {
       const currentIds = prev.table_ids || [];
@@ -294,14 +309,24 @@ export function Tables() {
   function handleTableClick(tableId: number) {
     const status = getTableStatus(tableId);
     const session = getTableSession(tableId);
+    const reservation = getTableReservation(tableId);
 
     if (status === 'occupied' && session) {
       // Tavolo con conto aperto -> mostra dettagli sessione
       openSessionDetails(session);
-    } else if (status === 'available') {
-      // Tavolo libero -> apri modal per aprire conto
+    } else if (status === 'available' || status === 'reserved') {
+      // Tavolo libero o prenotato -> apri modal per aprire conto
+      // Se prenotato, pre-compila con i dati della prenotazione
       setSelectedTableId(tableId);
-      setSessionForm({ covers: '2', customer_name: '', customer_phone: '' });
+      if (reservation) {
+        setSessionForm({
+          covers: reservation.guests?.toString() || '2',
+          customer_name: reservation.customer_name || '',
+          customer_phone: reservation.phone || '',
+        });
+      } else {
+        setSessionForm({ covers: '2', customer_name: '', customer_phone: '' });
+      }
       setShowOpenSessionModal(true);
     }
   }
@@ -463,10 +488,16 @@ export function Tables() {
           <h1 className="text-3xl font-bold text-white">Tavoli</h1>
           <p className="text-dark-400 mt-1">Gestisci tavoli e prenotazioni</p>
         </div>
-        <button onClick={() => openTableModal()} className="btn-primary">
-          <Plus className="w-5 h-5" />
-          Nuovo Tavolo
-        </button>
+        <div className="flex items-center gap-3">
+          <button onClick={() => openReservationModalDirect()} className="btn-secondary">
+            <Calendar className="w-5 h-5" />
+            Nuova Prenotazione
+          </button>
+          <button onClick={() => openTableModal()} className="btn-primary">
+            <Plus className="w-5 h-5" />
+            Nuovo Tavolo
+          </button>
+        </div>
       </div>
 
       {/* Date selector */}
@@ -511,7 +542,7 @@ export function Tables() {
                 group relative
                 ${status === 'available' ? 'table-available cursor-pointer hover:scale-105' : ''}
                 ${status === 'occupied' ? 'table-occupied cursor-pointer hover:scale-105' : ''}
-                ${status === 'reserved' ? 'table-reserved' : ''}
+                ${status === 'reserved' ? 'table-reserved cursor-pointer hover:scale-105' : ''}
                 p-4 transition-transform
               `}
             >
