@@ -757,11 +757,12 @@ export async function getReservations(date?: string): Promise<Reservation[]> {
   if (date) reservations = reservations.filter(r => r.date === date);
   const tables = getLocalData<Table[]>('tables', []);
   return reservations.map(res => {
-    // Supporto multi-tavoli
-    const tableIds = res.table_ids || [res.table_id];
+    // Supporto multi-tavoli - assicura che table_ids sia sempre un array valido
+    const tableIds = res.table_ids && res.table_ids.length > 0 ? res.table_ids : [res.table_id];
     const tableNames = tableIds.map(id => tables.find(t => t.id === id)?.name || '').filter(Boolean);
     return {
       ...res,
+      table_ids: tableIds, // Assicura che table_ids sia sempre presente nel risultato
       table_name: tableNames.join(' + ') || tables.find(t => t.id === res.table_id)?.name,
       table_names: tableNames,
     };
