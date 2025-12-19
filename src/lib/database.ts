@@ -972,7 +972,7 @@ export async function updateReservation(id: number, updates: Partial<Omit<Reserv
       .update({
         ...updatesData,
         table_id: updates.table_ids?.[0] || updates.table_id,
-        table_ids: updates.table_ids || (updates.table_id ? [updates.table_id] : undefined),
+        table_ids: updates.table_ids || (updates.table_id ? [updates.table_id] : null),
       })
       .eq('id', id)
       .select()

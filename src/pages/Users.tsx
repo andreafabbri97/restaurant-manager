@@ -134,11 +134,13 @@ export function Users() {
       if (isSupabaseConfigured && supabase) {
         if (editingUser) {
           // Modifica utente esistente
-          const updateData: Partial<User> = {
+          // Nota: per Supabase passiamo i valori direttamente senza convertire null in undefined
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const updateData: any = {
             username: formData.username,
             name: formData.name,
             role: formData.role,
-            employee_id: formData.employee_id || undefined,
+            employee_id: formData.employee_id, // Può essere number o null
           };
           if (formData.password) {
             updateData.password = formData.password;
