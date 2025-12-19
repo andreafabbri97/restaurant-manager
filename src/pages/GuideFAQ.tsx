@@ -48,14 +48,18 @@ export function GuideFAQ() {
         'Dalla sidebar clicca su "Nuovo Ordine"',
         'Scegli il tipo: Asporto, Domicilio o Tavolo',
         'Per Asporto/Domicilio: inserisci nome e telefono cliente',
-        'Clicca sui prodotti per aggiungerli al carrello',
-        'Usa + e - per modificare le quantità',
+        'Tocca/clicca su una card prodotto per aggiungerlo al carrello',
+        'Il badge arancione sulla card mostra la quantità nel carrello',
+        'Usa il pulsante "-" sulla card per rimuovere unità velocemente',
+        'Nel carrello puoi usare + e - per modificare le quantità',
         'Se necessario, aggiungi note cliccando sull\'icona nota',
         'Scegli il metodo di pagamento (Contanti, Carta, Online)',
         'Spunta "SMAC" se il cliente ha la tessera',
         'Clicca "Invia Ordine" per confermare',
       ],
       tips: [
+        'Tocca ovunque sulla card per aggiungere (non solo sul nome)',
+        'Il pulsante "-" appare solo se il prodotto è nel carrello',
         'Usa la barra di ricerca per trovare prodotti velocemente',
         'I prodotti non disponibili sono disabilitati',
         'Puoi filtrare per categoria dal menu in alto',
@@ -145,10 +149,17 @@ export function GuideFAQ() {
       icon: <Calculator className="w-5 h-5" />,
       content: [
         'Vai su "Costo Piatti" dalla sidebar',
-        'Vedi il costo stimato di ogni piatto basato sugli ingredienti',
-        'Il food cost % indica quanto del prezzo è costo ingredienti',
-        'Clicca su un piatto per vedere il dettaglio ingredienti',
-        'Usa questi dati per ottimizzare i prezzi del menu',
+        'Vedi le statistiche: piatti totali, margine medio, alto/basso margine',
+        'Ogni piatto mostra: prezzo vendita, costo ingredienti, profitto, margine %',
+        'Verde = margine alto (>60%), Giallo = medio (30-60%), Rosso = basso (<30%)',
+        'Clicca "Vedi dettaglio" per vedere la lista ingredienti con costi',
+        'Usa i filtri per ordinare per nome, margine o costo',
+        'L\'avviso giallo indica piatti senza ricetta collegata',
+      ],
+      tips: [
+        'Un margine sopra il 60% è considerato ottimo',
+        'Collega le ricette per avere calcoli precisi',
+        'Su mobile i dati sono mostrati in formato card',
       ],
     },
     {
@@ -249,6 +260,25 @@ export function GuideFAQ() {
         'Gestisci categorie del menu',
         'Personalizza messaggi e notifiche',
       ],
+      tips: [
+        'Il nome del ristorante appare nell\'header della sidebar',
+        'Le modifiche si applicano immediatamente',
+      ],
+    },
+    {
+      title: 'Tema e Interfaccia',
+      icon: <Settings className="w-5 h-5" />,
+      content: [
+        'Cambia tema chiaro/scuro dal pulsante sole/luna nella sidebar',
+        'Riduci la sidebar su desktop cliccando "Riduci Menu"',
+        'La sidebar ridotta mostra solo le icone',
+        'Su mobile la sidebar si apre dal menu hamburger',
+        'La preferenza tema viene salvata automaticamente',
+      ],
+      tips: [
+        'Il tema scuro è consigliato per ambienti poco illuminati',
+        'La sidebar ridotta offre più spazio per i contenuti',
+      ],
     },
     {
       title: 'Gestione Utenti',
@@ -314,6 +344,26 @@ export function GuideFAQ() {
       question: 'Gli ordini non si aggiornano automaticamente',
       answer: 'Controlla l\'icona accanto a "Ordini" nella sidebar. Verde = connesso. Se è arancione/gialla, la connessione in tempo reale è interrotta. Ricarica la pagina.',
     },
+    {
+      category: 'Ordini',
+      question: 'Come rimuovo velocemente un prodotto dalla card?',
+      answer: 'Quando un prodotto è nel carrello, appare un pulsante "-" sulla card. Cliccalo per rimuovere una unità. Puoi anche usare i pulsanti +/- nel carrello laterale.',
+    },
+    {
+      category: 'Ordini',
+      question: 'Cosa indica il numero arancione sulla card?',
+      answer: 'Il badge arancione in alto a destra della card indica quante unità di quel prodotto hai nel carrello. Appare solo se il prodotto è stato aggiunto.',
+    },
+    {
+      category: 'Interfaccia',
+      question: 'Come cambio il tema chiaro/scuro?',
+      answer: 'Clicca sul pulsante sole/luna in fondo alla sidebar. La preferenza viene salvata e mantenuta anche dopo il logout.',
+    },
+    {
+      category: 'Interfaccia',
+      question: 'Come riduco la sidebar per avere più spazio?',
+      answer: 'Su desktop, clicca "Riduci Menu" in fondo alla sidebar. La sidebar mostrerà solo le icone. Clicca di nuovo per espanderla.',
+    },
   ];
 
   // ============================================
@@ -344,6 +394,21 @@ export function GuideFAQ() {
       category: 'Personale',
       question: 'Un dipendente ha dimenticato di timbrare l\'uscita',
       answer: 'Vai su "Personale", trova il turno del dipendente e modifica manualmente l\'orario di uscita.',
+    },
+    {
+      category: 'Costo Piatti',
+      question: 'Perché alcuni piatti mostrano "Nessuna ricetta"?',
+      answer: 'Devi collegare il piatto agli ingredienti nella sezione "Ricette". Solo così il sistema può calcolare il costo degli ingredienti e il margine.',
+    },
+    {
+      category: 'Costo Piatti',
+      question: 'Come miglioro il margine di un piatto?',
+      answer: 'Puoi: aumentare il prezzo di vendita, ridurre le porzioni di ingredienti costosi, sostituire ingredienti con alternative più economiche, o negoziare prezzi migliori con i fornitori.',
+    },
+    {
+      category: 'Costo Piatti',
+      question: 'I colori del margine cosa significano?',
+      answer: 'Verde = margine alto (oltre 60%), ottimo profitto. Giallo = margine medio (30-60%), accettabile. Rosso = margine basso (sotto 30%), richiede attenzione.',
     },
   ];
 
