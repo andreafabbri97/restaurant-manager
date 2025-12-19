@@ -145,7 +145,6 @@ export function Orders() {
   const [remainingAmount, setRemainingAmount] = useState(0);
   const [allSessionItems, setAllSessionItems] = useState<(OrderItem & { order_number?: number })[]>([]);
   const [remainingSessionItems, setRemainingSessionItems] = useState<(OrderItem & { order_number?: number; remainingQty: number })[]>([]);
-  const [paidQuantities, setPaidQuantities] = useState<Record<number, number>>({});
   const [selectedItems, setSelectedItems] = useState<Record<number, number>>({});
   const [romanaForm, setRomanaForm] = useState({ totalPeople: '', payingPeople: '' });
   const [splitPaymentForm, setSplitPaymentForm] = useState({
@@ -402,7 +401,6 @@ export function Orders() {
       }
 
       setAllSessionItems(allItems);
-      setPaidQuantities(paidQtys);
       setSessionPayments(payments);
       setRemainingAmount(remaining);
 
@@ -452,7 +450,6 @@ export function Orders() {
       }
 
       setAllSessionItems(allItems);
-      setPaidQuantities(paidQtys);
       setSessionPayments(payments);
       setRemainingAmount(remaining);
       setSessionToClose({ id: selectedOrder.session_id, total: sessionTotal });
@@ -506,20 +503,6 @@ export function Orders() {
         return { ...prev, [itemId]: newValue };
       }
       return prev;
-    });
-  }
-
-  function toggleAllItemQuantity(itemId: number) {
-    const item = remainingSessionItems.find(i => i.id === itemId);
-    if (!item) return;
-    setSelectedItems(prev => {
-      const current = prev[itemId] || 0;
-      if (current === item.remainingQty) {
-        const { [itemId]: _, ...rest } = prev;
-        return rest;
-      } else {
-        return { ...prev, [itemId]: item.remainingQty };
-      }
     });
   }
 
@@ -613,7 +596,6 @@ export function Orders() {
       ]);
       setSessionPayments(payments);
       setRemainingAmount(remaining);
-      setPaidQuantities(paidQtys);
 
       const updatedRemaining = allSessionItems.map(item => ({
         ...item,
@@ -674,7 +656,7 @@ export function Orders() {
             ${selectedReceipt.shop_info.phone ? `<div>Tel: ${selectedReceipt.shop_info.phone}</div>` : ''}
           </div>
           <div class="divider"></div>
-          <div>Data: ${new Date(selectedReceipt.created_at).toLocaleString('it-IT')}</div>
+          <div>Data: ${selectedReceipt.date} ${selectedReceipt.time}</div>
           <div class="divider"></div>
           ${selectedReceipt.items.map(item => `
             <div class="item">
@@ -2566,7 +2548,7 @@ export function Orders() {
               </div>
               <div className="border-t border-dashed border-gray-400 my-3"></div>
               <div className="text-xs mb-3">
-                <p>Data: {new Date(selectedReceipt.created_at).toLocaleString('it-IT')}</p>
+                <p>Data: {selectedReceipt.date} {selectedReceipt.time}</p>
               </div>
               <div className="border-t border-dashed border-gray-400 my-3"></div>
               <div className="space-y-1">

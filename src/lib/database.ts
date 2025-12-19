@@ -2401,27 +2401,32 @@ export async function getSessionPaidQuantities(sessionId: number): Promise<Recor
 // Genera scontrino per un pagamento parziale
 export async function generatePartialReceipt(payment: SessionPayment): Promise<Receipt | null> {
   const settings = await getSettings();
+  const paidAt = new Date(payment.paid_at);
+  const dateStr = paidAt.toLocaleDateString('it-IT');
+  const timeStr = paidAt.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
 
   if (!payment.paid_items || payment.paid_items.length === 0) {
     // Pagamento senza dettaglio items (manuale o alla romana)
     return {
       id: payment.id,
       order_id: 0,
-      created_at: payment.paid_at,
+      receipt_number: `P-${payment.id}`,
+      date: dateStr,
+      time: timeStr,
       shop_info: {
         name: settings.shop_name || 'Kebab Restaurant',
         address: settings.address,
         phone: settings.phone,
-        email: settings.email,
       },
       items: [{
         name: 'Pagamento parziale',
         quantity: 1,
-        price: payment.amount,
+        unit_price: payment.amount,
         total: payment.amount,
       }],
       subtotal: payment.amount,
-      tax: 0,
+      iva_rate: settings.iva_rate || 10,
+      iva_amount: 0,
       total: payment.amount,
       payment_method: payment.payment_method,
       smac_passed: payment.smac_passed || false,
@@ -2431,23 +2436,25 @@ export async function generatePartialReceipt(payment: SessionPayment): Promise<R
   const items = payment.paid_items.map(item => ({
     name: item.menu_item_name,
     quantity: item.quantity,
-    price: item.price,
+    unit_price: item.price,
     total: item.price * item.quantity,
   }));
 
   return {
     id: payment.id,
     order_id: 0,
-    created_at: payment.paid_at,
+    receipt_number: `P-${payment.id}`,
+    date: dateStr,
+    time: timeStr,
     shop_info: {
       name: settings.shop_name || 'Kebab Restaurant',
       address: settings.address,
       phone: settings.phone,
-      email: settings.email,
     },
     items,
     subtotal: payment.amount,
-    tax: 0,
+    iva_rate: settings.iva_rate || 10,
+    iva_amount: 0,
     total: payment.amount,
     payment_method: payment.payment_method,
     smac_passed: payment.smac_passed || false,

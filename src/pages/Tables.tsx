@@ -88,7 +88,6 @@ export function Tables() {
   const [splitMode, setSplitMode] = useState<'manual' | 'romana' | 'items'>('manual');
   const [allSessionItems, setAllSessionItems] = useState<(OrderItem & { order_number?: number })[]>([]);
   const [remainingSessionItems, setRemainingSessionItems] = useState<(OrderItem & { order_number?: number; remainingQty: number })[]>([]);
-  const [paidQuantities, setPaidQuantities] = useState<Record<number, number>>({});
   const [selectedItems, setSelectedItems] = useState<Record<number, number>>({}); // itemId -> quantità selezionata
   const [romanaForm, setRomanaForm] = useState({ totalPeople: '', payingPeople: '' });
 
@@ -547,7 +546,6 @@ export function Tables() {
 
       // Carica le quantità già pagate per calcolare i rimanenti
       const paidQtys = await getSessionPaidQuantities(selectedSession.id);
-      setPaidQuantities(paidQtys);
 
       // Calcola items rimanenti (sottrai quantità già pagate)
       const remaining = allItems.map(item => ({
@@ -722,7 +720,6 @@ export function Tables() {
       ]);
       setSessionPayments(payments);
       setRemainingAmount(remaining);
-      setPaidQuantities(paidQtys);
 
       // Ricalcola items rimanenti
       const updatedRemaining = allSessionItems.map(item => ({
@@ -793,7 +790,7 @@ export function Tables() {
             ${selectedReceipt.shop_info.phone ? `<div>Tel: ${selectedReceipt.shop_info.phone}</div>` : ''}
           </div>
           <div class="divider"></div>
-          <div>Data: ${new Date(selectedReceipt.created_at).toLocaleString('it-IT')}</div>
+          <div>Data: ${selectedReceipt.date} ${selectedReceipt.time}</div>
           <div class="divider"></div>
           ${selectedReceipt.items.map(item => `
             <div class="item">
@@ -2280,7 +2277,7 @@ export function Tables() {
               <div className="border-t border-dashed border-gray-400 my-3"></div>
 
               <div className="text-xs mb-3">
-                <p>Data: {new Date(selectedReceipt.created_at).toLocaleString('it-IT')}</p>
+                <p>Data: {selectedReceipt.date} {selectedReceipt.time}</p>
               </div>
 
               <div className="border-t border-dashed border-gray-400 my-3"></div>
