@@ -24,6 +24,7 @@ const Settings = lazy(() => import('./pages/Settings').then(m => ({ default: m.S
 const Users = lazy(() => import('./pages/Users').then(m => ({ default: m.Users })));
 const CashRegister = lazy(() => import('./pages/CashRegister').then(m => ({ default: m.CashRegister })));
 const DishCosts = lazy(() => import('./pages/DishCosts').then(m => ({ default: m.DishCosts })));
+const GuideFAQ = lazy(() => import('./pages/GuideFAQ').then(m => ({ default: m.GuideFAQ })));
 
 // Loading component per Suspense
 function PageLoader() {
@@ -215,6 +216,18 @@ function App() {
                 <PrivateRoute permission="dish-costs">
                   <Suspense fallback={<PageLoader />}>
                     <DishCosts />
+                  </Suspense>
+                </PrivateRoute>
+              }
+            />
+
+            {/* Guida e FAQ - tutti */}
+            <Route
+              path="guide"
+              element={
+                <PrivateRoute permission="guide">
+                  <Suspense fallback={<PageLoader />}>
+                    <GuideFAQ />
                   </Suspense>
                 </PrivateRoute>
               }

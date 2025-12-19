@@ -24,6 +24,7 @@ import {
   PanelLeft,
   Calculator,
   Receipt,
+  HelpCircle,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNotifications } from '../../context/NotificationContext';
@@ -32,21 +33,37 @@ import { ROLE_LABELS } from '../../types';
 import { isSupabaseConfigured } from '../../lib/supabase';
 import { getSettings } from '../../lib/database';
 
+// Menu organizzato per gruppi logici:
+// 1. Panoramica (superadmin)
+// 2. Operazioni quotidiane (tutti)
+// 3. Gestione prodotti (admin)
+// 4. Gestione risorse (admin)
+// 5. Amministrazione (admin/superadmin)
+// 6. Sistema (superadmin)
+// 7. Aiuto (tutti)
 const navigation = [
+  // Panoramica
   { name: 'Dashboard', href: '/', icon: LayoutDashboard, permission: 'dashboard' },
+  // Operazioni quotidiane - usate da tutti
   { name: 'Nuovo Ordine', href: '/orders/new', icon: ShoppingCart, permission: 'orders.new' },
   { name: 'Ordini', href: '/orders', icon: ChefHat, permission: 'orders' },
-  { name: 'Menu', href: '/menu', icon: UtensilsCrossed, permission: 'menu' },
-  { name: 'Costo Piatti', href: '/dish-costs', icon: Calculator, permission: 'dish-costs' },
   { name: 'Tavoli', href: '/tables', icon: CalendarDays, permission: 'tables' },
-  { name: 'Inventario', href: '/inventory', icon: Package, permission: 'inventory' },
+  // Gestione prodotti
+  { name: 'Menu', href: '/menu', icon: UtensilsCrossed, permission: 'menu' },
   { name: 'Ricette', href: '/recipes', icon: BookOpen, permission: 'recipes' },
+  { name: 'Costo Piatti', href: '/dish-costs', icon: Calculator, permission: 'dish-costs' },
+  // Gestione risorse
+  { name: 'Inventario', href: '/inventory', icon: Package, permission: 'inventory' },
   { name: 'Personale', href: '/staff', icon: Users, permission: 'staff' },
+  // Amministrazione
   { name: 'Chiusura Cassa', href: '/cash-register', icon: Receipt, permission: 'cash-register' },
   { name: 'SMAC', href: '/smac', icon: CreditCard, permission: 'smac' },
-  { name: 'Report & Admin', href: '/reports', icon: BarChart3, permission: 'reports' },
+  { name: 'Report', href: '/reports', icon: BarChart3, permission: 'reports' },
+  // Sistema
   { name: 'Impostazioni', href: '/settings', icon: Settings, permission: 'settings' },
   { name: 'Utenti', href: '/users', icon: UserCog, permission: 'users' },
+  // Aiuto - visibile a tutti
+  { name: 'Guida e FAQ', href: '/guide', icon: HelpCircle, permission: 'guide' },
 ];
 
 interface SidebarProps {
