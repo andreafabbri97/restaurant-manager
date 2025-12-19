@@ -16,6 +16,7 @@ import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { LanguageProvider } from './context/LanguageContext';
 import { PrivateRoute } from './components/auth/PrivateRoute';
 import { Layout } from './components/layout/Layout';
 import { ToastContainer } from './components/ui/Toast';
@@ -38,6 +39,7 @@ const Users = lazy(() => import('./pages/Users').then(m => ({ default: m.Users }
 const CashRegister = lazy(() => import('./pages/CashRegister').then(m => ({ default: m.CashRegister })));
 const DishCosts = lazy(() => import('./pages/DishCosts').then(m => ({ default: m.DishCosts })));
 const GuideFAQ = lazy(() => import('./pages/GuideFAQ').then(m => ({ default: m.GuideFAQ })));
+const Language = lazy(() => import('./pages/Language').then(m => ({ default: m.Language })));
 
 // Loading component per Suspense
 function PageLoader() {
@@ -52,9 +54,10 @@ function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider>
-        <AuthProvider>
-          <NotificationProvider>
-            <HashRouter>
+        <LanguageProvider>
+          <AuthProvider>
+            <NotificationProvider>
+              <HashRouter>
         <Routes>
           {/* Route pubblica: Login */}
           <Route path="/login" element={<Login />} />
@@ -245,15 +248,28 @@ function App() {
                 </PrivateRoute>
               }
             />
+
+            {/* Lingua - tutti */}
+            <Route
+              path="language"
+              element={
+                <PrivateRoute permission="language">
+                  <Suspense fallback={<PageLoader />}>
+                    <Language />
+                  </Suspense>
+                </PrivateRoute>
+              }
+            />
           </Route>
 
           {/* Catch-all: redirect al login */}
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
               <ToastContainer />
-            </HashRouter>
-          </NotificationProvider>
-        </AuthProvider>
+              </HashRouter>
+            </NotificationProvider>
+          </AuthProvider>
+        </LanguageProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );

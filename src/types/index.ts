@@ -18,14 +18,14 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
   superadmin: [
     'dashboard', 'orders', 'orders.new', 'menu', 'tables',
     'inventory', 'recipes', 'staff', 'staff.full', 'reports', 'smac',
-    'settings', 'users', 'cash-register', 'dish-costs', 'guide'
+    'settings', 'users', 'cash-register', 'dish-costs', 'guide', 'language'
   ],
   admin: [
     'dashboard', 'orders', 'orders.new', 'menu', 'tables',
-    'inventory', 'recipes', 'staff', 'staff.full', 'cash-register', 'dish-costs', 'guide'
+    'inventory', 'recipes', 'staff', 'staff.full', 'cash-register', 'dish-costs', 'guide', 'language'
   ],
   staff: [
-    'orders.new', 'orders', 'tables', 'staff', 'guide'
+    'orders.new', 'orders', 'tables', 'staff', 'guide', 'language'
   ],
 };
 

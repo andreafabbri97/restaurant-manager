@@ -31,10 +31,12 @@ import {
   Calculator,
   Receipt,
   HelpCircle,
+  Globe,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNotifications } from '../../context/NotificationContext';
 import { useTheme } from '../../context/ThemeContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { ROLE_LABELS } from '../../types';
 import { isSupabaseConfigured } from '../../lib/supabase';
 import { getSettings } from '../../lib/database';
@@ -49,27 +51,29 @@ import { getSettings } from '../../lib/database';
 // 7. Aiuto (tutti)
 const navigation = [
   // Panoramica
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard, permission: 'dashboard' },
+  { nameKey: 'sidebar.dashboard', href: '/', icon: LayoutDashboard, permission: 'dashboard' },
   // Operazioni quotidiane - usate da tutti
-  { name: 'Nuovo Ordine', href: '/orders/new', icon: ShoppingCart, permission: 'orders.new' },
-  { name: 'Ordini', href: '/orders', icon: ChefHat, permission: 'orders' },
-  { name: 'Tavoli', href: '/tables', icon: CalendarDays, permission: 'tables' },
+  { nameKey: 'sidebar.newOrder', href: '/orders/new', icon: ShoppingCart, permission: 'orders.new' },
+  { nameKey: 'sidebar.orders', href: '/orders', icon: ChefHat, permission: 'orders' },
+  { nameKey: 'sidebar.tables', href: '/tables', icon: CalendarDays, permission: 'tables' },
   // Gestione prodotti
-  { name: 'Menu', href: '/menu', icon: UtensilsCrossed, permission: 'menu' },
-  { name: 'Ricette', href: '/recipes', icon: BookOpen, permission: 'recipes' },
-  { name: 'Costo Piatti', href: '/dish-costs', icon: Calculator, permission: 'dish-costs' },
+  { nameKey: 'sidebar.menu', href: '/menu', icon: UtensilsCrossed, permission: 'menu' },
+  { nameKey: 'sidebar.recipes', href: '/recipes', icon: BookOpen, permission: 'recipes' },
+  { nameKey: 'sidebar.dishCosts', href: '/dish-costs', icon: Calculator, permission: 'dish-costs' },
   // Gestione risorse
-  { name: 'Inventario', href: '/inventory', icon: Package, permission: 'inventory' },
-  { name: 'Personale', href: '/staff', icon: Users, permission: 'staff' },
+  { nameKey: 'sidebar.inventory', href: '/inventory', icon: Package, permission: 'inventory' },
+  { nameKey: 'sidebar.staff', href: '/staff', icon: Users, permission: 'staff' },
   // Amministrazione
-  { name: 'Chiusura Cassa', href: '/cash-register', icon: Receipt, permission: 'cash-register' },
-  { name: 'SMAC', href: '/smac', icon: CreditCard, permission: 'smac' },
-  { name: 'Ammin. & Report', href: '/reports', icon: BarChart3, permission: 'reports' },
+  { nameKey: 'sidebar.cashRegister', href: '/cash-register', icon: Receipt, permission: 'cash-register' },
+  { nameKey: 'sidebar.smac', href: '/smac', icon: CreditCard, permission: 'smac' },
+  { nameKey: 'sidebar.reports', href: '/reports', icon: BarChart3, permission: 'reports' },
   // Sistema
-  { name: 'Impostazioni', href: '/settings', icon: Settings, permission: 'settings' },
-  { name: 'Utenti', href: '/users', icon: UserCog, permission: 'users' },
+  { nameKey: 'sidebar.settings', href: '/settings', icon: Settings, permission: 'settings' },
+  { nameKey: 'sidebar.users', href: '/users', icon: UserCog, permission: 'users' },
   // Aiuto - visibile a tutti
-  { name: 'Guida e FAQ', href: '/guide', icon: HelpCircle, permission: 'guide' },
+  { nameKey: 'sidebar.guide', href: '/guide', icon: HelpCircle, permission: 'guide' },
+  // Lingua - visibile a tutti
+  { nameKey: 'sidebar.language', href: '/language', icon: Globe, permission: 'language' },
 ];
 
 interface SidebarProps {
@@ -81,6 +85,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { user, logout, hasPermission } = useAuth();
   const { isRealtimeConnected } = useNotifications();
   const { theme, toggleTheme, sidebarCollapsed, toggleSidebar } = useTheme();
+  const { t } = useLanguage();
   const [shopName, setShopName] = useState('Il Mio Ristorante');
 
   // Carica il nome del ristorante dalle settings
@@ -209,45 +214,48 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
         {/* Navigation */}
         <nav className={`flex-1 p-3 ${sidebarCollapsed ? 'lg:p-2' : 'lg:p-4'} space-y-1 overflow-y-auto`}>
-          {filteredNavigation.map((item) => (
-            <NavLink
-              key={item.name}
-              to={item.href}
-              onClick={handleNavClick}
-              title={sidebarCollapsed ? item.name : undefined}
-              className={({ isActive }) =>
-                `sidebar-link ${isActive ? 'active' : ''} ${sidebarCollapsed ? 'lg:justify-center lg:px-3' : ''}`
-              }
-            >
-              <item.icon className="w-5 h-5 flex-shrink-0" />
-              <span className={`flex-1 ${sidebarCollapsed ? 'lg:hidden' : ''}`}>{item.name}</span>
-              {/* Live indicator for Orders */}
-              {item.href === '/orders' && isSupabaseConfigured && !sidebarCollapsed && (
-                <span
-                  className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-xs ${
-                    isRealtimeConnected
-                      ? 'bg-emerald-500/20 text-emerald-400'
-                      : 'bg-amber-500/20 text-amber-400'
-                  }`}
-                  title={isRealtimeConnected ? 'Connesso in tempo reale' : 'Non connesso'}
-                >
-                  {isRealtimeConnected ? (
-                    <Wifi className="w-3 h-3" />
-                  ) : (
-                    <WifiOff className="w-3 h-3" />
-                  )}
-                </span>
-              )}
-              {/* Collapsed indicator - dot for orders */}
-              {item.href === '/orders' && isSupabaseConfigured && sidebarCollapsed && (
-                <span
-                  className={`absolute top-1 right-1 w-2 h-2 rounded-full hidden lg:block ${
-                    isRealtimeConnected ? 'bg-emerald-400' : 'bg-amber-400'
-                  }`}
-                />
-              )}
-            </NavLink>
-          ))}
+          {filteredNavigation.map((item) => {
+            const itemName = t(item.nameKey);
+            return (
+              <NavLink
+                key={item.nameKey}
+                to={item.href}
+                onClick={handleNavClick}
+                title={sidebarCollapsed ? itemName : undefined}
+                className={({ isActive }) =>
+                  `sidebar-link ${isActive ? 'active' : ''} ${sidebarCollapsed ? 'lg:justify-center lg:px-3' : ''}`
+                }
+              >
+                <item.icon className="w-5 h-5 flex-shrink-0" />
+                <span className={`flex-1 ${sidebarCollapsed ? 'lg:hidden' : ''}`}>{itemName}</span>
+                {/* Live indicator for Orders */}
+                {item.href === '/orders' && isSupabaseConfigured && !sidebarCollapsed && (
+                  <span
+                    className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-xs ${
+                      isRealtimeConnected
+                        ? 'bg-emerald-500/20 text-emerald-400'
+                        : 'bg-amber-500/20 text-amber-400'
+                    }`}
+                    title={isRealtimeConnected ? 'Connesso in tempo reale' : 'Non connesso'}
+                  >
+                    {isRealtimeConnected ? (
+                      <Wifi className="w-3 h-3" />
+                    ) : (
+                      <WifiOff className="w-3 h-3" />
+                    )}
+                  </span>
+                )}
+                {/* Collapsed indicator - dot for orders */}
+                {item.href === '/orders' && isSupabaseConfigured && sidebarCollapsed && (
+                  <span
+                    className={`absolute top-1 right-1 w-2 h-2 rounded-full hidden lg:block ${
+                      isRealtimeConnected ? 'bg-emerald-400' : 'bg-amber-400'
+                    }`}
+                  />
+                )}
+              </NavLink>
+            );
+          })}
         </nav>
 
         {/* Bottom Section - Compatto */}
@@ -255,7 +263,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            title={theme === 'dark' ? 'Passa al tema chiaro' : 'Passa al tema scuro'}
+            title={theme === 'dark' ? t('sidebar.lightTheme') : t('sidebar.darkTheme')}
             className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-dark-400 hover:text-white hover:bg-dark-800 transition-colors ${
               sidebarCollapsed ? 'lg:justify-center lg:px-2' : ''
             }`}
@@ -265,13 +273,13 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             ) : (
               <Moon className="w-4 h-4 flex-shrink-0" />
             )}
-            <span className={`text-sm ${sidebarCollapsed ? 'lg:hidden' : ''}`}>{theme === 'dark' ? 'Tema Chiaro' : 'Tema Scuro'}</span>
+            <span className={`text-sm ${sidebarCollapsed ? 'lg:hidden' : ''}`}>{theme === 'dark' ? t('sidebar.lightTheme') : t('sidebar.darkTheme')}</span>
           </button>
 
           {/* Collapse Toggle - solo desktop */}
           <button
             onClick={toggleSidebar}
-            title={sidebarCollapsed ? 'Espandi sidebar' : 'Riduci sidebar'}
+            title={sidebarCollapsed ? t('sidebar.expandMenu') : t('sidebar.collapseMenu')}
             className={`hidden lg:flex w-full items-center gap-3 px-3 py-2 rounded-lg text-dark-400 hover:text-white hover:bg-dark-800 transition-colors ${
               sidebarCollapsed ? 'justify-center px-2' : ''
             }`}
@@ -281,19 +289,19 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             ) : (
               <PanelLeftClose className="w-4 h-4 flex-shrink-0" />
             )}
-            {!sidebarCollapsed && <span className="text-sm">Riduci Menu</span>}
+            {!sidebarCollapsed && <span className="text-sm">{t('sidebar.collapseMenu')}</span>}
           </button>
 
           {/* Logout Button */}
           <button
             onClick={handleLogout}
-            title={sidebarCollapsed ? 'Esci' : undefined}
+            title={sidebarCollapsed ? t('sidebar.logout') : undefined}
             className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-dark-400 hover:text-white hover:bg-dark-800 transition-colors ${
               sidebarCollapsed ? 'lg:justify-center lg:px-2' : ''
             }`}
           >
             <LogOut className="w-4 h-4 flex-shrink-0" />
-            <span className={`text-sm ${sidebarCollapsed ? 'lg:hidden' : ''}`}>Esci</span>
+            <span className={`text-sm ${sidebarCollapsed ? 'lg:hidden' : ''}`}>{t('sidebar.logout')}</span>
           </button>
 
           <div className={`text-[9px] text-dark-500 text-center ${sidebarCollapsed ? 'lg:hidden' : ''}`}>

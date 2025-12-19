@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogIn, User, Lock, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export function Login() {
   const [username, setUsername] = useState('');
@@ -15,6 +16,7 @@ export function Login() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   async function handleSubmit(e: React.FormEvent) {
@@ -22,7 +24,7 @@ export function Login() {
     setError('');
 
     if (!username || !password) {
-      setError('Inserisci username e password');
+      setError(t('login.errorRequired'));
       return;
     }
 
@@ -33,10 +35,10 @@ export function Login() {
       if (success) {
         navigate('/');
       } else {
-        setError('Credenziali non valide o account disattivato');
+        setError(t('login.errorCredentials'));
       }
     } catch {
-      setError('Errore durante il login');
+      setError(t('common.error'));
     } finally {
       setIsLoading(false);
     }
@@ -50,8 +52,8 @@ export function Login() {
           <div className="w-20 h-20 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary-500/30">
             <span className="text-4xl">🍽️</span>
           </div>
-          <h1 className="text-3xl font-bold text-white">Restaurant Manager</h1>
-          <p className="text-dark-400 mt-2">Accedi al tuo account</p>
+          <h1 className="text-3xl font-bold text-white">{t('login.subtitle')}</h1>
+          <p className="text-dark-400 mt-2">{t('login.title')}</p>
         </div>
 
         {/* Login Form */}
@@ -68,7 +70,7 @@ export function Login() {
             {/* Username */}
             <div>
               <label className="block text-sm font-medium text-dark-300 mb-2">
-                Username
+                {t('login.username')}
               </label>
               <div className="relative">
                 <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-dark-400" />
@@ -76,7 +78,7 @@ export function Login() {
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Inserisci username"
+                  placeholder={t('login.username')}
                   className="input pl-12 py-3"
                   autoComplete="username"
                   autoFocus
@@ -87,7 +89,7 @@ export function Login() {
             {/* Password */}
             <div>
               <label className="block text-sm font-medium text-dark-300 mb-2">
-                Password
+                {t('login.password')}
               </label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-dark-400" />
@@ -95,7 +97,7 @@ export function Login() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Inserisci password"
+                  placeholder={t('login.password')}
                   className="input pl-12 py-3"
                   autoComplete="current-password"
                 />
@@ -111,12 +113,12 @@ export function Login() {
               {isLoading ? (
                 <div className="flex items-center justify-center gap-2">
                   <div className="w-5 h-5 border-2 border-dark-900 border-t-transparent rounded-full animate-spin" />
-                  Accesso in corso...
+                  {t('login.loggingIn')}
                 </div>
               ) : (
                 <div className="flex items-center justify-center gap-2">
                   <LogIn className="w-5 h-5" />
-                  Accedi
+                  {t('login.loginButton')}
                 </div>
               )}
             </button>
