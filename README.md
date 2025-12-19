@@ -70,6 +70,7 @@ Il tavolo torna verde (disponibile).
 - Inserisci l'importo che la persona paga
 - Usa i pulsanti rapidi: Tutto, Meta, 1/N
 - Scegli Contanti o Carta
+- **IMPORTANTE: Spunta "SMAC passato" se il cliente passa la tessera per questo pagamento**
 - Se contanti: usa il calcolatore resto
 - Clicca **Aggiungi Pagamento**
 
@@ -81,10 +82,14 @@ Il tavolo torna verde (disponibile).
 - Poi conferma con **Aggiungi Pagamento**
 
 ### Per Consumazione
-- Seleziona i prodotti che la persona ha ordinato
+- Usa i pulsanti **+** e **-** per scegliere quanti pezzi di ogni prodotto pagare
+- Esempio: se ci sono 4 kebab, puoi pagarne solo 1 o 2
+- Il pulsante **Tutti** seleziona l'intera quantita di quel prodotto
 - Il sistema somma automaticamente
 - Clicca **Applica Selezione**
 - Poi conferma con **Aggiungi Pagamento**
+
+**NOTA SMAC**: Ogni pagamento parziale puo avere la sua SMAC. Spunta la casella per chi passa la tessera, lasciala vuota per chi non la passa. Cosi a fine giornata sai esattamente quanto dichiarare.
 
 Ripeti per ogni persona. Quando il rimanente arriva a zero, il conto si chiude automaticamente.
 
@@ -170,9 +175,12 @@ Ricarica la pagina (F5 o tasto ricarica del browser).
 | Ordine veloce | Nuovo Ordine > Asporto > prodotti > Invia |
 | Apri tavolo | Tavoli > tavolo verde > Apri Conto |
 | Aggiungi comanda | Tavoli > tavolo rosso > Aggiungi Comanda |
+| Rimuovi dal carrello | Clicca il pulsante **-** rosso sulla card prodotto |
 | Chiudi conto | Tavoli > tavolo rosso > Chiudi Conto |
 | Dividi conto | Tavoli > tavolo rosso > Dividi Conto |
+| Paga parte quantita | Nel dividi conto "Per Consumazione" usa +/- |
 | Resto contanti | Nel pagamento, usa Calcolatore Resto |
+| Chiudi conto da storico | Ordini > Storico > Conto Aperto > Chiudi Conto |
 
 ---
 

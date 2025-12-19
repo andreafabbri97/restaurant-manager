@@ -97,6 +97,7 @@ export function Tables() {
     amount: '',
     method: 'cash' as 'cash' | 'card' | 'online',
     notes: '',
+    smac: false,
   });
   const [changeCalculator, setChangeCalculator] = useState({
     customerGives: '',
@@ -517,7 +518,7 @@ export function Tables() {
 
   async function handleSplitBill() {
     if (!selectedSession) return;
-    setSplitPaymentForm({ amount: '', method: 'cash', notes: '' });
+    setSplitPaymentForm({ amount: '', method: 'cash', notes: '', smac: false });
     setSplitMode('manual');
     setSelectedItems({});
     setRomanaForm({ totalPeople: selectedSession.covers.toString(), payingPeople: '' });
@@ -667,7 +668,8 @@ export function Tables() {
         selectedSession.id,
         amount,
         splitPaymentForm.method,
-        splitPaymentForm.notes || undefined
+        splitPaymentForm.notes || undefined,
+        splitPaymentForm.smac
       );
 
       // Ricarica i pagamenti
@@ -677,7 +679,7 @@ export function Tables() {
       ]);
       setSessionPayments(payments);
       setRemainingAmount(remaining);
-      setSplitPaymentForm({ amount: '', method: 'cash', notes: '' });
+      setSplitPaymentForm({ amount: '', method: 'cash', notes: '', smac: false });
 
       showToast('Pagamento aggiunto', 'success');
 
@@ -1595,6 +1597,11 @@ export function Tables() {
                         <span className="text-white">€{payment.amount.toFixed(2)}</span>
                         {payment.notes && <span className="text-dark-400 text-sm">- {payment.notes}</span>}
                       </div>
+                      {payment.smac_passed && (
+                        <span className="text-xs bg-primary-500/20 text-primary-400 px-2 py-0.5 rounded-full">
+                          SMAC
+                        </span>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -1899,6 +1906,21 @@ export function Tables() {
                       >
                         <CreditCard className="w-4 h-4" /> Carta
                       </button>
+                    </div>
+
+                    {/* Checkbox SMAC per questo pagamento */}
+                    <div className="flex items-center gap-3 p-3 bg-primary-500/5 border border-primary-500/20 rounded-lg">
+                      <input
+                        type="checkbox"
+                        id="split_smac"
+                        checked={splitPaymentForm.smac}
+                        onChange={(e) => setSplitPaymentForm({ ...splitPaymentForm, smac: e.target.checked })}
+                        className="w-5 h-5 rounded border-dark-600 bg-dark-800 text-primary-500 focus:ring-primary-500"
+                      />
+                      <label htmlFor="split_smac" className="text-white cursor-pointer flex-1">
+                        <span className="font-medium">SMAC passato</span>
+                        <p className="text-xs text-dark-400">Spunta se questo pagamento è già stato dichiarato con tessera SMAC</p>
+                      </label>
                     </div>
 
                     {/* Calcolatore Resto - solo per contanti */}

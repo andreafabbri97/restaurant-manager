@@ -1069,6 +1069,7 @@ export async function getSettings(): Promise<Settings> {
     }
     return {
       shop_name: data?.shop_name || 'Il Mio Ristorante',
+      menu_slogan: data?.menu_slogan,
       currency: data?.currency || '€',
       iva_rate: data?.iva_rate ?? 17,
       default_threshold: data?.default_threshold ?? 10,
@@ -1080,6 +1081,7 @@ export async function getSettings(): Promise<Settings> {
   }
   return getLocalData('settings', {
     shop_name: 'Il Mio Ristorante',
+    menu_slogan: '',
     currency: '€',
     iva_rate: 17,
     default_threshold: 10,
@@ -2304,7 +2306,8 @@ export async function addSessionPayment(
   sessionId: number,
   amount: number,
   paymentMethod: 'cash' | 'card' | 'online',
-  notes?: string
+  notes?: string,
+  smacPassed?: boolean
 ): Promise<SessionPayment> {
   const newPayment: SessionPayment = {
     id: Date.now(),
@@ -2313,6 +2316,7 @@ export async function addSessionPayment(
     payment_method: paymentMethod,
     paid_at: new Date().toISOString(),
     notes,
+    smac_passed: smacPassed || false,
   };
 
   if (isSupabaseConfigured && supabase) {
@@ -2323,6 +2327,7 @@ export async function addSessionPayment(
         amount,
         payment_method: paymentMethod,
         notes,
+        smac_passed: smacPassed || false,
       })
       .select()
       .single();

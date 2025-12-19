@@ -365,6 +365,7 @@ export interface SessionPayment {
   payment_method: 'cash' | 'card' | 'online';
   paid_at: string;
   notes?: string; // es. "Marco", "Ragazza bionda"
+  smac_passed?: boolean; // Se questo pagamento è stato smaccato
 }
 
 // ============== IMPOSTAZIONI COSTO INGREDIENTI ==============

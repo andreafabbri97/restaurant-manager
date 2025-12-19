@@ -45,6 +45,9 @@ export function Settings() {
     setSaving(true);
     try {
       await updateSettings(settings);
+      // Ricarica le impostazioni dal database per confermare il salvataggio
+      const savedSettings = await getSettings();
+      setSettings(savedSettings);
       showToast('Impostazioni salvate', 'success');
     } catch (error) {
       console.error('Error saving settings:', error);
