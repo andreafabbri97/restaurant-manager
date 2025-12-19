@@ -375,16 +375,25 @@ Per problemi tecnici contattare l'amministratore del sistema.
 | SMAC | Tracking tessere fedelta per ordine |
 | Report | Analisi vendite, spese, profitto per periodo |
 | Utenti | Gestione account e ruoli (Staff/Admin/Superadmin) |
-| Impostazioni | Configurazione negozio, backup dati |
-| Guida FAQ | Documentazione e FAQ integrate |
+| Impostazioni | Configurazione negozio, lingua, tema, backup dati |
+| Guida FAQ | Documentazione, guida descrittiva e FAQ integrate |
+
+### Caratteristiche Tecniche
+
+- **Multilingua**: Italiano e Inglese, ogni utente sceglie la sua lingua
+- **Tema**: Chiaro o Scuro, personalizzabile per utente
+- **Realtime**: Gli ordini si aggiornano automaticamente su tutti i dispositivi
+- **Multi-dispositivo**: Funziona su PC, tablet e smartphone
+- **Offline**: Fallback localStorage quando Supabase non è disponibile
 
 ### Sicurezza e Backup
 
 - I dati sono salvati su Supabase (cloud) con fallback localStorage
 - Esporta backup JSON da Impostazioni
 - Ogni utente deve avere credenziali personali
+- Tre livelli di accesso: Staff, Admin, Superadmin
 - Le sessioni non scadono automaticamente
 
 ---
 
-*Versione 2.3 - Kebab Restaurant Management System*
+*Versione 2.4 - Kebab Restaurant Management System*

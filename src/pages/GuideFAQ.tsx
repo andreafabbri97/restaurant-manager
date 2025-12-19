@@ -14,7 +14,22 @@ import {
   Receipt,
   Calculator,
   BookOpen,
-  Search
+  Search,
+  Sparkles,
+  LayoutDashboard,
+  ChefHat,
+  ClipboardList,
+  Wallet,
+  FileText,
+  UserCog,
+  Shield,
+  Languages,
+  Moon,
+  Sun,
+  Smartphone,
+  Monitor,
+  Wifi,
+  Database
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -37,7 +52,7 @@ export function GuideFAQ() {
   const { isSuperAdmin, isAdmin } = useAuth();
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState<'guide' | 'faq'>('guide');
+  const [activeTab, setActiveTab] = useState<'welcome' | 'guide' | 'faq'>('welcome');
 
   // ============================================
   // SEZIONI GUIDA PER STAFF (BASE)
@@ -704,28 +719,486 @@ export function GuideFAQ() {
       </div>
 
       {/* Tab Selector */}
-      <div className="flex gap-2 border-b border-dark-700 pb-2">
+      <div className="flex gap-2 border-b border-dark-700 pb-2 overflow-x-auto">
+        <button
+          onClick={() => setActiveTab('welcome')}
+          className={`px-4 py-2 rounded-t-lg font-medium transition-colors whitespace-nowrap flex items-center gap-2 ${
+            activeTab === 'welcome'
+              ? 'bg-primary-500 text-dark-900'
+              : 'text-dark-400 hover:text-white hover:bg-dark-800'
+          }`}
+        >
+          <Sparkles className="w-4 h-4" />
+          Guida Descrittiva
+        </button>
         <button
           onClick={() => setActiveTab('guide')}
-          className={`px-4 py-2 rounded-t-lg font-medium transition-colors ${
+          className={`px-4 py-2 rounded-t-lg font-medium transition-colors whitespace-nowrap flex items-center gap-2 ${
             activeTab === 'guide'
               ? 'bg-primary-500 text-dark-900'
               : 'text-dark-400 hover:text-white hover:bg-dark-800'
           }`}
         >
+          <BookOpen className="w-4 h-4" />
           Guida Operativa
         </button>
         <button
           onClick={() => setActiveTab('faq')}
-          className={`px-4 py-2 rounded-t-lg font-medium transition-colors ${
+          className={`px-4 py-2 rounded-t-lg font-medium transition-colors whitespace-nowrap flex items-center gap-2 ${
             activeTab === 'faq'
               ? 'bg-primary-500 text-dark-900'
               : 'text-dark-400 hover:text-white hover:bg-dark-800'
           }`}
         >
-          FAQ - Domande Frequenti
+          <HelpCircle className="w-4 h-4" />
+          FAQ
         </button>
       </div>
+
+      {/* GUIDA DESCRITTIVA - Benvenuto */}
+      {activeTab === 'welcome' && (
+        <div className="space-y-8">
+          {/* Hero Section */}
+          <div className="card bg-gradient-to-br from-primary-500/20 to-dark-800 border-primary-500/30">
+            <div className="p-6 sm:p-8 text-center">
+              <div className="w-16 h-16 rounded-full bg-primary-500/30 flex items-center justify-center mx-auto mb-4">
+                <ChefHat className="w-8 h-8 text-primary-400" />
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">
+                Benvenuto in Kebab Restaurant
+              </h2>
+              <p className="text-dark-300 max-w-2xl mx-auto">
+                Un sistema completo per la gestione del tuo ristorante. Ordini, tavoli, inventario,
+                personale e report: tutto in un'unica app moderna e intuitiva.
+              </p>
+            </div>
+          </div>
+
+          {/* Panoramica Moduli */}
+          <div className="space-y-6">
+            <h3 className="text-xl font-semibold text-white flex items-center gap-2">
+              <LayoutDashboard className="w-5 h-5 text-primary-400" />
+              I Moduli del Sistema
+            </h3>
+
+            {/* Dashboard */}
+            <div className="card">
+              <div className="card-header flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-blue-500/20">
+                  <LayoutDashboard className="w-5 h-5 text-blue-400" />
+                </div>
+                <h4 className="font-semibold text-white">Dashboard</h4>
+              </div>
+              <div className="card-body">
+                <p className="text-dark-300 mb-3">
+                  La Dashboard è la tua pagina principale. Appena accedi, trovi una panoramica completa
+                  di cosa sta succedendo nel ristorante: quanti ordini hai fatto oggi, l'incasso totale,
+                  gli ordini in attesa e quelli in preparazione.
+                </p>
+                <p className="text-dark-300">
+                  Se qualche ingrediente sta finendo, lo vedi subito nella sezione "Scorte Basse".
+                  I pulsanti rapidi in basso ti permettono di accedere velocemente alle sezioni più usate.
+                </p>
+              </div>
+            </div>
+
+            {/* Nuovo Ordine */}
+            <div className="card">
+              <div className="card-header flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary-500/20">
+                  <ShoppingCart className="w-5 h-5 text-primary-400" />
+                </div>
+                <h4 className="font-semibold text-white">Nuovo Ordine</h4>
+              </div>
+              <div className="card-body">
+                <p className="text-dark-300 mb-3">
+                  Qui crei gli ordini per asporto, domicilio o tavolo. L'interfaccia è pensata per essere
+                  veloce: tocchi un prodotto e si aggiunge al carrello, vedi subito il totale aggiornato.
+                </p>
+                <p className="text-dark-300 mb-3">
+                  Puoi cercare i prodotti per nome, filtrarli per categoria, e aggiungere note speciali
+                  (come "senza cipolla" o "extra piccante"). Per gli ordini a tavolo, il sistema ti chiede
+                  automaticamente di inserire i coperti e il nome del cliente.
+                </p>
+                <p className="text-dark-300">
+                  Alla fine scegli come paga il cliente (contanti, carta o online) e se ha la tessera SMAC
+                  per la tracciabilità fiscale.
+                </p>
+              </div>
+            </div>
+
+            {/* Ordini / Cucina */}
+            <div className="card">
+              <div className="card-header flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-amber-500/20">
+                  <ClipboardList className="w-5 h-5 text-amber-400" />
+                </div>
+                <h4 className="font-semibold text-white">Ordini (Vista Cucina)</h4>
+              </div>
+              <div className="card-body">
+                <p className="text-dark-300 mb-3">
+                  La sezione Ordini è progettata per la cucina. Mostra tutti gli ordini del giorno in
+                  formato Kanban: quattro colonne per "In Attesa", "In Preparazione", "Pronto" e "Consegnato".
+                </p>
+                <p className="text-dark-300 mb-3">
+                  Il cuoco vede subito cosa deve preparare, può espandere ogni ordine per vedere i singoli
+                  prodotti, e cambia lo stato con un click. L'icona verde in alto indica che la connessione
+                  è attiva e gli ordini si aggiornano in tempo reale.
+                </p>
+                <p className="text-dark-300">
+                  Nella tab "Storico" trovi tutti gli ordini degli ultimi 7 giorni, con la possibilità di
+                  modificarli, applicare sconti o gestire i conti ancora aperti.
+                </p>
+              </div>
+            </div>
+
+            {/* Tavoli */}
+            <div className="card">
+              <div className="card-header flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-emerald-500/20">
+                  <Users className="w-5 h-5 text-emerald-400" />
+                </div>
+                <h4 className="font-semibold text-white">Tavoli e Prenotazioni</h4>
+              </div>
+              <div className="card-body">
+                <p className="text-dark-300 mb-3">
+                  La mappa dei tavoli ti mostra a colpo d'occhio la situazione della sala. I colori parlano
+                  chiaro: verde per i tavoli liberi, rosso per quelli occupati, arancione per le prenotazioni.
+                </p>
+                <p className="text-dark-300 mb-3">
+                  Quando un cliente si siede, apri un "conto" sul tavolo. Durante la cena puoi aggiungere
+                  più comande (antipasti, primi, secondi...) che si sommano tutte allo stesso conto.
+                </p>
+                <p className="text-dark-300 mb-3">
+                  Al momento di pagare hai tre opzioni: pagamento completo, divisione "alla romana"
+                  (ognuno paga la sua quota), o divisione "per consumazione" (ognuno paga esattamente
+                  quello che ha mangiato). Il sistema tiene traccia di chi ha già pagato cosa.
+                </p>
+                <p className="text-dark-300">
+                  Puoi anche trasferire un conto su un altro tavolo se i clienti vogliono spostarsi,
+                  senza perdere nessun dato.
+                </p>
+              </div>
+            </div>
+
+            {/* Menu */}
+            <div className="card">
+              <div className="card-header flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-purple-500/20">
+                  <UtensilsCrossed className="w-5 h-5 text-purple-400" />
+                </div>
+                <h4 className="font-semibold text-white">Menu</h4>
+              </div>
+              <div className="card-body">
+                <p className="text-dark-300 mb-3">
+                  Gestisci tutti i tuoi prodotti: nome, descrizione, prezzo, categoria e immagine.
+                  Puoi creare nuove categorie, riordinare i prodotti e segnare quali sono disponibili
+                  o temporaneamente esauriti.
+                </p>
+                <p className="text-dark-300">
+                  C'è anche la funzione per esportare il menu in PDF, utile per stamparlo o condividerlo
+                  online.
+                </p>
+              </div>
+            </div>
+
+            {/* Inventario */}
+            {(isAdmin() || isSuperAdmin()) && (
+              <div className="card">
+                <div className="card-header flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-orange-500/20">
+                    <Package className="w-5 h-5 text-orange-400" />
+                  </div>
+                  <h4 className="font-semibold text-white">Inventario</h4>
+                </div>
+                <div className="card-body">
+                  <p className="text-dark-300 mb-3">
+                    Tieni sotto controllo le scorte di tutti gli ingredienti. Il sistema ti avvisa
+                    automaticamente quando qualcosa scende sotto la soglia minima che hai impostato.
+                  </p>
+                  <p className="text-dark-300 mb-3">
+                    Quando ricevi una fornitura, la registri qui: inserisci quantità e costo, e
+                    l'inventario si aggiorna automaticamente. Puoi anche far creare automaticamente
+                    la fattura corrispondente, che apparirà nella sezione Report.
+                  </p>
+                  <p className="text-dark-300">
+                    Il calcolo EOQ (Economic Order Quantity) ti suggerisce quanto ordinare per
+                    ottimizzare i costi di gestione del magazzino.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Ricette e Costo Piatti */}
+            {(isAdmin() || isSuperAdmin()) && (
+              <div className="card">
+                <div className="card-header flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-pink-500/20">
+                    <Calculator className="w-5 h-5 text-pink-400" />
+                  </div>
+                  <h4 className="font-semibold text-white">Ricette e Costo Piatti</h4>
+                </div>
+                <div className="card-body">
+                  <p className="text-dark-300 mb-3">
+                    Collega ogni piatto del menu agli ingredienti che lo compongono. Per ogni ingrediente
+                    specifichi la quantità usata nella ricetta.
+                  </p>
+                  <p className="text-dark-300 mb-3">
+                    Nella sezione "Costo Piatti" vedi automaticamente: il costo degli ingredienti,
+                    il prezzo di vendita, e il margine di profitto. I colori ti indicano subito quali
+                    piatti sono redditizi (verde), accettabili (giallo) o da rivedere (rosso).
+                  </p>
+                  <p className="text-dark-300">
+                    Quando il costo di un ingrediente cambia, il sistema ricalcola automaticamente
+                    tutti i margini dei piatti che lo usano.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Personale */}
+            <div className="card">
+              <div className="card-header flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-cyan-500/20">
+                  <UserCog className="w-5 h-5 text-cyan-400" />
+                </div>
+                <h4 className="font-semibold text-white">Personale</h4>
+              </div>
+              <div className="card-body">
+                <p className="text-dark-300 mb-3">
+                  Gestisci i turni di lavoro del tuo staff. Ogni dipendente può timbrare l'entrata
+                  e l'uscita, e il sistema calcola automaticamente le ore lavorate.
+                </p>
+                <p className="text-dark-300">
+                  Puoi vedere il riepilogo settimanale, modificare orari dimenticati e tenere traccia
+                  delle presenze per ogni membro del team.
+                </p>
+              </div>
+            </div>
+
+            {/* Chiusura Cassa */}
+            {(isAdmin() || isSuperAdmin()) && (
+              <div className="card">
+                <div className="card-header flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-green-500/20">
+                    <Wallet className="w-5 h-5 text-green-400" />
+                  </div>
+                  <h4 className="font-semibold text-white">Chiusura Cassa</h4>
+                </div>
+                <div className="card-body">
+                  <p className="text-dark-300 mb-3">
+                    A fine giornata, fai la riconciliazione della cassa. Il sistema ti mostra quanto
+                    dovresti avere in base agli ordini registrati, diviso tra contanti e carte.
+                  </p>
+                  <p className="text-dark-300">
+                    Tu inserisci quanto c'è effettivamente in cassa, e il sistema calcola eventuali
+                    differenze. Puoi aggiungere note per spiegare discrepanze (mance, errori, ecc.).
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* SMAC */}
+            {isSuperAdmin() && (
+              <div className="card">
+                <div className="card-header flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-indigo-500/20">
+                    <CreditCard className="w-5 h-5 text-indigo-400" />
+                  </div>
+                  <h4 className="font-semibold text-white">SMAC (Tessera Fedeltà)</h4>
+                </div>
+                <div className="card-body">
+                  <p className="text-dark-300 mb-3">
+                    Traccia tutti gli ordini effettuati con tessera SMAC per la dichiarazione fiscale.
+                    Puoi vedere i totali giornalieri, settimanali e mensili.
+                  </p>
+                  <p className="text-dark-300">
+                    Quando dividi un conto, ogni pagamento può avere la sua SMAC: così sai esattamente
+                    chi l'ha passata e chi no.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Report */}
+            {(isAdmin() || isSuperAdmin()) && (
+              <div className="card">
+                <div className="card-header flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-violet-500/20">
+                    <BarChart3 className="w-5 h-5 text-violet-400" />
+                  </div>
+                  <h4 className="font-semibold text-white">Report e Amministrazione</h4>
+                </div>
+                <div className="card-body">
+                  <p className="text-dark-300 mb-3">
+                    La sezione Report ti dà una visione completa del business. Analizza vendite per periodo,
+                    confronta incassi, identifica i prodotti più venduti e i giorni più redditizi.
+                  </p>
+                  <p className="text-dark-300 mb-3">
+                    Qui gestisci anche le fatture dei fornitori: registri le spese, tieni traccia dei
+                    pagamenti e vedi il bilancio tra entrate e uscite.
+                  </p>
+                  <p className="text-dark-300">
+                    Puoi esportare tutti i dati in formato PDF o CSV per il commercialista.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Utenti */}
+            {isSuperAdmin() && (
+              <div className="card">
+                <div className="card-header flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-red-500/20">
+                    <Shield className="w-5 h-5 text-red-400" />
+                  </div>
+                  <h4 className="font-semibold text-white">Gestione Utenti</h4>
+                </div>
+                <div className="card-body">
+                  <p className="text-dark-300 mb-3">
+                    Crea e gestisci gli account per il tuo staff. Ogni persona deve avere il proprio
+                    account con username e password personali.
+                  </p>
+                  <p className="text-dark-300 mb-3">
+                    Ci sono tre livelli di accesso: <strong>Staff</strong> per chi lavora in sala (ordini e tavoli),
+                    <strong> Admin</strong> per i responsabili (tutto tranne report avanzati e utenti),
+                    <strong> Superadmin</strong> per il proprietario (accesso completo).
+                  </p>
+                  <p className="text-dark-300">
+                    Quando un dipendente se ne va, disattiva il suo account invece di eliminarlo:
+                    così mantieni tutto lo storico.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Impostazioni */}
+            <div className="card">
+              <div className="card-header flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-gray-500/20">
+                  <Settings className="w-5 h-5 text-gray-400" />
+                </div>
+                <h4 className="font-semibold text-white">Impostazioni</h4>
+              </div>
+              <div className="card-body">
+                <p className="text-dark-300 mb-3">
+                  Personalizza l'app per le tue esigenze. Puoi cambiare la lingua (italiano o inglese),
+                  scegliere il tema chiaro o scuro, e configurare i dati del negozio.
+                </p>
+                {(isAdmin() || isSuperAdmin()) && (
+                  <p className="text-dark-300">
+                    Gli amministratori possono anche impostare le soglie di inventario, l'aliquota IVA
+                    e altri parametri finanziari.
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Caratteristiche Tecniche */}
+          <div className="space-y-6">
+            <h3 className="text-xl font-semibold text-white flex items-center gap-2">
+              <Database className="w-5 h-5 text-primary-400" />
+              Caratteristiche del Sistema
+            </h3>
+
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="card p-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <Wifi className="w-5 h-5 text-emerald-400" />
+                  <span className="font-medium text-white">Tempo Reale</span>
+                </div>
+                <p className="text-sm text-dark-400">
+                  Gli ordini si aggiornano istantaneamente su tutti i dispositivi.
+                  Niente refresh manuali.
+                </p>
+              </div>
+
+              <div className="card p-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <Monitor className="w-5 h-5 text-blue-400" />
+                  <span className="font-medium text-white">Multi-dispositivo</span>
+                </div>
+                <p className="text-sm text-dark-400">
+                  Funziona su PC, tablet e smartphone. Ogni postazione può avere
+                  la sua vista ottimizzata.
+                </p>
+              </div>
+
+              <div className="card p-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <Database className="w-5 h-5 text-purple-400" />
+                  <span className="font-medium text-white">Cloud + Locale</span>
+                </div>
+                <p className="text-sm text-dark-400">
+                  I dati sono salvati sul cloud, ma l'app funziona anche
+                  offline grazie al salvataggio locale.
+                </p>
+              </div>
+
+              <div className="card p-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <Languages className="w-5 h-5 text-amber-400" />
+                  <span className="font-medium text-white">Multilingua</span>
+                </div>
+                <p className="text-sm text-dark-400">
+                  Disponibile in italiano e inglese. Ogni utente può scegliere
+                  la sua lingua preferita.
+                </p>
+              </div>
+
+              <div className="card p-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <Moon className="w-5 h-5 text-indigo-400" />
+                  <span className="font-medium text-white">Tema Scuro/Chiaro</span>
+                </div>
+                <p className="text-sm text-dark-400">
+                  Scegli il tema che preferisci. Il tema scuro è perfetto
+                  per ambienti con poca luce.
+                </p>
+              </div>
+
+              <div className="card p-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <Shield className="w-5 h-5 text-red-400" />
+                  <span className="font-medium text-white">Ruoli e Permessi</span>
+                </div>
+                <p className="text-sm text-dark-400">
+                  Ogni utente vede solo le funzioni del suo ruolo.
+                  Staff, Admin e Superadmin.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Call to Action */}
+          <div className="card bg-gradient-to-r from-primary-500/20 to-emerald-500/20 border-primary-500/30">
+            <div className="p-6 text-center">
+              <h3 className="text-lg font-semibold text-white mb-2">Pronto per iniziare?</h3>
+              <p className="text-dark-300 mb-4">
+                Passa alla <strong>Guida Operativa</strong> per istruzioni passo-passo,
+                oppure consulta le <strong>FAQ</strong> per risposte rapide.
+              </p>
+              <div className="flex flex-wrap justify-center gap-3">
+                <button
+                  onClick={() => setActiveTab('guide')}
+                  className="btn-primary"
+                >
+                  <BookOpen className="w-4 h-4" />
+                  Guida Operativa
+                </button>
+                <button
+                  onClick={() => setActiveTab('faq')}
+                  className="btn-secondary"
+                >
+                  <HelpCircle className="w-4 h-4" />
+                  FAQ
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* GUIDA OPERATIVA */}
       {activeTab === 'guide' && (

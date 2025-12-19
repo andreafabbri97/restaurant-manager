@@ -940,44 +940,20 @@ export function Orders() {
     });
   }
 
-  const filteredOrders = orders.filter((order) => {
-    if (searchQuery) {
-      const search = searchQuery.toLowerCase();
-      return (
-        order.id.toString().includes(search) ||
-        order.customer_name?.toLowerCase().includes(search) ||
-        order.table_name?.toLowerCase().includes(search)
-      );
-    }
-    return true;
-  });
-
   const ordersByStatus = {
-    pending: filteredOrders.filter((o) => o.status === 'pending'),
-    preparing: filteredOrders.filter((o) => o.status === 'preparing'),
-    ready: filteredOrders.filter((o) => o.status === 'ready'),
-    delivered: filteredOrders.filter((o) => o.status === 'delivered'),
+    pending: orders.filter((o) => o.status === 'pending'),
+    preparing: orders.filter((o) => o.status === 'preparing'),
+    ready: orders.filter((o) => o.status === 'ready'),
+    delivered: orders.filter((o) => o.status === 'delivered'),
   };
 
   return (
     <div className="space-y-2 sm:space-y-3">
       {/* Header compatto - tutto in una riga su desktop */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2 lg:gap-4">
-        {/* Titolo + Ricerca + Tabs inline su desktop */}
+        {/* Titolo + Tabs inline su desktop */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
           <h1 className="text-xl sm:text-2xl font-bold text-white whitespace-nowrap">{t('orders.title')}</h1>
-
-          {/* Ricerca inline - visibile solo su desktop, si nasconde su mobile */}
-          <div className="relative hidden lg:block w-40">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-400" />
-            <input
-              type="text"
-              placeholder={t('orders.searchOrders')}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="input pl-8 py-1.5 text-sm w-full"
-            />
-          </div>
 
           {/* Tabs inline */}
           <div className="flex gap-1 overflow-x-auto">
@@ -1033,20 +1009,6 @@ export function Orders() {
 
       {activeTab === 'today' && (
         <>
-      {/* Ricerca mobile - visibile solo su mobile */}
-      <div className="lg:hidden">
-        <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-400" />
-          <input
-            type="text"
-            placeholder={t('orders.searchOrders')}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="input pl-8 py-1.5 text-sm w-full"
-          />
-        </div>
-      </div>
-
       {loading ? (
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
