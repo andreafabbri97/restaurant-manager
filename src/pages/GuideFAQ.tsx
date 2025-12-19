@@ -778,26 +778,28 @@ export function GuideFAQ() {
               I Moduli del Sistema
             </h3>
 
-            {/* Dashboard */}
-            <div className="card">
-              <div className="card-header flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-blue-500/20">
-                  <LayoutDashboard className="w-5 h-5 text-blue-400" />
+            {/* Dashboard - Solo per Admin/Superadmin */}
+            {(isAdmin() || isSuperAdmin()) && (
+              <div className="card">
+                <div className="card-header flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-blue-500/20">
+                    <LayoutDashboard className="w-5 h-5 text-blue-400" />
+                  </div>
+                  <h4 className="font-semibold text-white">Dashboard</h4>
                 </div>
-                <h4 className="font-semibold text-white">Dashboard</h4>
+                <div className="card-body">
+                  <p className="text-dark-300 mb-3">
+                    La Dashboard è la tua pagina principale. Appena accedi, trovi una panoramica completa
+                    di cosa sta succedendo nel ristorante: quanti ordini hai fatto oggi, l'incasso totale,
+                    gli ordini in attesa e quelli in preparazione.
+                  </p>
+                  <p className="text-dark-300">
+                    Se qualche ingrediente sta finendo, lo vedi subito nella sezione "Scorte Basse".
+                    I pulsanti rapidi in basso ti permettono di accedere velocemente alle sezioni più usate.
+                  </p>
+                </div>
               </div>
-              <div className="card-body">
-                <p className="text-dark-300 mb-3">
-                  La Dashboard è la tua pagina principale. Appena accedi, trovi una panoramica completa
-                  di cosa sta succedendo nel ristorante: quanti ordini hai fatto oggi, l'incasso totale,
-                  gli ordini in attesa e quelli in preparazione.
-                </p>
-                <p className="text-dark-300">
-                  Se qualche ingrediente sta finendo, lo vedi subito nella sezione "Scorte Basse".
-                  I pulsanti rapidi in basso ti permettono di accedere velocemente alle sezioni più usate.
-                </p>
-              </div>
-            </div>
+            )}
 
             {/* Nuovo Ordine */}
             <div className="card">
@@ -878,26 +880,28 @@ export function GuideFAQ() {
               </div>
             </div>
 
-            {/* Menu */}
-            <div className="card">
-              <div className="card-header flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-purple-500/20">
-                  <UtensilsCrossed className="w-5 h-5 text-purple-400" />
+            {/* Menu - Solo per Admin/Superadmin */}
+            {(isAdmin() || isSuperAdmin()) && (
+              <div className="card">
+                <div className="card-header flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-purple-500/20">
+                    <UtensilsCrossed className="w-5 h-5 text-purple-400" />
+                  </div>
+                  <h4 className="font-semibold text-white">Menu</h4>
                 </div>
-                <h4 className="font-semibold text-white">Menu</h4>
+                <div className="card-body">
+                  <p className="text-dark-300 mb-3">
+                    Gestisci tutti i tuoi prodotti: nome, descrizione, prezzo, categoria e immagine.
+                    Puoi creare nuove categorie, riordinare i prodotti e segnare quali sono disponibili
+                    o temporaneamente esauriti.
+                  </p>
+                  <p className="text-dark-300">
+                    C'è anche la funzione per esportare il menu in PDF, utile per stamparlo o condividerlo
+                    online.
+                  </p>
+                </div>
               </div>
-              <div className="card-body">
-                <p className="text-dark-300 mb-3">
-                  Gestisci tutti i tuoi prodotti: nome, descrizione, prezzo, categoria e immagine.
-                  Puoi creare nuove categorie, riordinare i prodotti e segnare quali sono disponibili
-                  o temporaneamente esauriti.
-                </p>
-                <p className="text-dark-300">
-                  C'è anche la funzione per esportare il menu in PDF, utile per stamparlo o condividerlo
-                  online.
-                </p>
-              </div>
-            </div>
+            )}
 
             {/* Inventario */}
             {(isAdmin() || isSuperAdmin()) && (
@@ -962,14 +966,23 @@ export function GuideFAQ() {
                 <h4 className="font-semibold text-white">Personale</h4>
               </div>
               <div className="card-body">
-                <p className="text-dark-300 mb-3">
-                  Gestisci i turni di lavoro del tuo staff. Ogni dipendente può timbrare l'entrata
-                  e l'uscita, e il sistema calcola automaticamente le ore lavorate.
-                </p>
-                <p className="text-dark-300">
-                  Puoi vedere il riepilogo settimanale, modificare orari dimenticati e tenere traccia
-                  delle presenze per ogni membro del team.
-                </p>
+                {(isAdmin() || isSuperAdmin()) ? (
+                  <>
+                    <p className="text-dark-300 mb-3">
+                      Gestisci i turni di lavoro del tuo staff. Ogni dipendente può timbrare l'entrata
+                      e l'uscita, e il sistema calcola automaticamente le ore lavorate.
+                    </p>
+                    <p className="text-dark-300">
+                      Puoi vedere il riepilogo settimanale, modificare orari dimenticati e tenere traccia
+                      delle presenze per ogni membro del team.
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-dark-300">
+                    Registra la tua presenza giornaliera. Timbra l'entrata quando inizi il turno
+                    e l'uscita quando finisci. Puoi vedere il riepilogo delle tue ore lavorate.
+                  </p>
+                )}
               </div>
             </div>
 
@@ -1069,27 +1082,24 @@ export function GuideFAQ() {
               </div>
             )}
 
-            {/* Impostazioni */}
-            <div className="card">
-              <div className="card-header flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-gray-500/20">
-                  <Settings className="w-5 h-5 text-gray-400" />
+            {/* Impostazioni - Solo per Admin/Superadmin */}
+            {(isAdmin() || isSuperAdmin()) && (
+              <div className="card">
+                <div className="card-header flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-gray-500/20">
+                    <Settings className="w-5 h-5 text-gray-400" />
+                  </div>
+                  <h4 className="font-semibold text-white">Impostazioni</h4>
                 </div>
-                <h4 className="font-semibold text-white">Impostazioni</h4>
-              </div>
-              <div className="card-body">
-                <p className="text-dark-300 mb-3">
-                  Personalizza l'app per le tue esigenze. Puoi cambiare la lingua (italiano o inglese),
-                  scegliere il tema chiaro o scuro, e configurare i dati del negozio.
-                </p>
-                {(isAdmin() || isSuperAdmin()) && (
-                  <p className="text-dark-300">
-                    Gli amministratori possono anche impostare le soglie di inventario, l'aliquota IVA
-                    e altri parametri finanziari.
+                <div className="card-body">
+                  <p className="text-dark-300 mb-3">
+                    Personalizza l'app per le tue esigenze. Puoi cambiare la lingua (italiano o inglese),
+                    scegliere il tema chiaro o scuro, configurare i dati del negozio, le soglie di inventario,
+                    l'aliquota IVA e altri parametri finanziari.
                   </p>
-                )}
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Caratteristiche Tecniche */}

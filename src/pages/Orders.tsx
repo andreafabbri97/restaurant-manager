@@ -32,6 +32,7 @@ import {
   FileText,
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { useCurrency } from '../hooks/useCurrency';
 import {
   getOrders,
   getOrderItems,
@@ -75,6 +76,7 @@ const orderTypeLabelKeys = {
 
 export function Orders() {
   const { t } = useLanguage();
+  const { formatPrice } = useCurrency();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate] = useState(new Date().toISOString().split('T')[0]); // Sempre oggi per tab "Oggi"
@@ -1110,7 +1112,7 @@ export function Orders() {
                                   </span>
                                 )}
                                 <p className="font-bold text-primary-400 ml-auto text-sm sm:text-base">
-                                  €{order.total.toFixed(2)}
+                                  {formatPrice(order.total)}
                                 </p>
                               </div>
 
@@ -1369,7 +1371,7 @@ export function Orders() {
                                   <span className="text-xs text-dark-400">({entry.orders.length}c)</span>
                                 )}
                               </div>
-                              <span className="font-semibold text-primary-400 flex-shrink-0">€{entry.total.toFixed(2)}</span>
+                              <span className="font-semibold text-primary-400 flex-shrink-0">{formatPrice(entry.total)}</span>
                             </div>
                             <div className="flex items-center justify-between mt-1">
                               <div className="flex items-center gap-2 text-xs text-dark-400">
@@ -1421,7 +1423,7 @@ export function Orders() {
                                 <span className="text-dark-500">└</span>
                                 <span className="font-mono text-dark-300 text-xs">#{order.id}</span>
                                 <span className="text-xs text-dark-500">C{order.order_number || 1}</span>
-                                <span className="ml-auto text-xs text-dark-300">€{order.total.toFixed(2)}</span>
+                                <span className="ml-auto text-xs text-dark-300">{formatPrice(order.total)}</span>
                                 <span className={`${statusConfig[order.status]?.color || 'badge-secondary'} text-[10px]`}>
                                   {t(statusConfig[order.status]?.labelKey)}
                                 </span>
@@ -1523,7 +1525,7 @@ export function Orders() {
                               </td>
                               <td>
                                 <span className="font-semibold text-primary-400">
-                                  €{order.total.toFixed(2)}
+                                  {formatPrice(order.total)}
                                 </span>
                               </td>
                               <td>
@@ -1639,7 +1641,7 @@ export function Orders() {
                               </td>
                               <td>
                                 <span className="font-semibold text-primary-400">
-                                  €{entry.total.toFixed(2)}
+                                  {formatPrice(entry.total)}
                                 </span>
                               </td>
                               <td>
@@ -1712,7 +1714,7 @@ export function Orders() {
                                 <td></td>
                                 <td>
                                   <span className="font-medium text-dark-300 text-sm">
-                                    €{order.total.toFixed(2)}
+                                    {formatPrice(order.total)}
                                   </span>
                                 </td>
                                 <td>
@@ -1851,7 +1853,7 @@ export function Orders() {
                           {t(statusConfig[order.status]?.labelKey) || order.status}
                         </span>
                         <span className="font-bold text-primary-400">
-                          €{order.total.toFixed(2)}
+                          {formatPrice(order.total)}
                         </span>
                       </div>
                     </div>
@@ -1865,7 +1867,7 @@ export function Orders() {
                               <span className="text-amber-400 ml-2">⚠️ {item.notes}</span>
                             )}
                           </div>
-                          <span className="text-dark-300">€{(item.price * item.quantity).toFixed(2)}</span>
+                          <span className="text-dark-300">{formatPrice(item.price * item.quantity)}</span>
                         </div>
                       ))}
                     </div>
@@ -1893,7 +1895,7 @@ export function Orders() {
                         )}
                       </div>
                       <p className="font-medium text-primary-400">
-                        €{(item.price * item.quantity).toFixed(2)}
+                        {formatPrice(item.price * item.quantity)}
                       </p>
                     </div>
                   ))}
@@ -1917,10 +1919,10 @@ export function Orders() {
                 {selectedOrder.session_id && sessionOrders.length > 1 ? 'Totale Conto' : 'Totale'}
               </span>
               <span className="text-2xl font-bold text-primary-400">
-                €{selectedOrder.session_id && sessionOrders.length > 1
-                  ? sessionOrders.reduce((sum, o) => sum + o.total, 0).toFixed(2)
-                  : selectedOrder.total.toFixed(2)
-                }
+                {formatPrice(selectedOrder.session_id && sessionOrders.length > 1
+                  ? sessionOrders.reduce((sum, o) => sum + o.total, 0)
+                  : selectedOrder.total
+                )}
               </span>
             </div>
 
@@ -2125,11 +2127,11 @@ export function Orders() {
               </div>
               {editForm.total !== editForm.originalTotal && (
                 <div className="text-right">
-                  <p className="text-xs text-dark-400">Originale: €{editForm.originalTotal.toFixed(2)}</p>
+                  <p className="text-xs text-dark-400">Originale: {formatPrice(editForm.originalTotal)}</p>
                   <p className={`text-sm font-medium ${editForm.total < editForm.originalTotal ? 'text-emerald-400' : 'text-amber-400'}`}>
                     {editForm.total < editForm.originalTotal
-                      ? `Sconto: -€${(editForm.originalTotal - editForm.total).toFixed(2)}`
-                      : `+€${(editForm.total - editForm.originalTotal).toFixed(2)}`
+                      ? `Sconto: -${formatPrice(editForm.originalTotal - editForm.total)}`
+                      : `+${formatPrice(editForm.total - editForm.originalTotal)}`
                     }
                   </p>
                 </div>
@@ -2158,7 +2160,7 @@ export function Orders() {
                 <div>
                   <p className="font-medium text-white">Conto Aperto</p>
                   <p className="text-sm text-dark-400">
-                    Totale: €{selectedOrder.total.toFixed(2)}
+                    Totale: {formatPrice(selectedOrder.total)}
                   </p>
                 </div>
                 <button
@@ -2215,7 +2217,7 @@ export function Orders() {
                   <div key={item.id} className="flex items-center justify-between py-2 border-b border-dark-700 last:border-0">
                     <div className="flex-1">
                       <span className="text-white">{item.menu_item_name}</span>
-                      <span className="text-dark-400 text-sm ml-2">€{item.price.toFixed(2)}/cad</span>
+                      <span className="text-dark-400 text-sm ml-2">{formatPrice(item.price)}/cad</span>
                     </div>
                     <div className="flex items-center gap-2">
                       {/* Controlli quantità */}
@@ -2234,7 +2236,7 @@ export function Orders() {
                         <Plus className="w-4 h-4 text-dark-300" />
                       </button>
                       {/* Totale riga */}
-                      <span className="text-dark-300 w-16 text-right">€{(item.price * item.quantity).toFixed(2)}</span>
+                      <span className="text-dark-300 w-16 text-right">{formatPrice(item.price * item.quantity)}</span>
                       {/* Elimina prodotto */}
                       <button
                         onClick={() => handleKanbanItemDelete(item.id)}
@@ -2253,7 +2255,7 @@ export function Orders() {
               <div className="flex justify-between items-center mt-2 pt-2 border-t border-dark-700">
                 <span className="text-dark-400">Totale Comanda:</span>
                 <span className="text-lg font-bold text-primary-400">
-                  €{kanbanEditItems.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2)}
+                  {formatPrice(kanbanEditItems.reduce((sum, item) => sum + item.price * item.quantity, 0))}
                 </span>
               </div>
             )}
@@ -2319,7 +2321,7 @@ export function Orders() {
           <div className="space-y-6">
             <div className="text-center p-4 bg-dark-900 rounded-xl">
               <p className="text-sm text-dark-400">Totale da pagare</p>
-              <p className="text-3xl font-bold text-primary-400">€{sessionToClose.total.toFixed(2)}</p>
+              <p className="text-3xl font-bold text-primary-400">{formatPrice(sessionToClose.total)}</p>
             </div>
 
             <div>
@@ -2402,7 +2404,7 @@ export function Orders() {
                       onClick={() => setChangeCalculator({ customerGives: amount.toString() })}
                       className="px-3 py-1 text-sm bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 rounded-lg transition-colors"
                     >
-                      €{amount}
+                      {formatPrice(amount)}
                     </button>
                   ))}
                 </div>
@@ -2410,22 +2412,22 @@ export function Orders() {
                   <div className="p-3 bg-dark-900 rounded-lg">
                     <div className="flex justify-between items-center">
                       <span className="text-dark-400">Totale conto:</span>
-                      <span className="text-white">€{sessionToClose.total.toFixed(2)}</span>
+                      <span className="text-white">{formatPrice(sessionToClose.total)}</span>
                     </div>
                     <div className="flex justify-between items-center mt-1">
                       <span className="text-dark-400">Cliente dà:</span>
-                      <span className="text-white">€{parseFloat(changeCalculator.customerGives).toFixed(2)}</span>
+                      <span className="text-white">{formatPrice(parseFloat(changeCalculator.customerGives))}</span>
                     </div>
                     <div className="border-t border-dark-700 my-2"></div>
                     <div className="flex justify-between items-center">
                       <span className="text-emerald-400 font-semibold">RESTO DA DARE:</span>
                       <span className="text-2xl font-bold text-emerald-400">
-                        €{Math.max(0, parseFloat(changeCalculator.customerGives) - sessionToClose.total).toFixed(2)}
+                        {formatPrice(Math.max(0, parseFloat(changeCalculator.customerGives) - sessionToClose.total))}
                       </span>
                     </div>
                     {parseFloat(changeCalculator.customerGives) < sessionToClose.total && (
                       <p className="text-amber-400 text-sm mt-2">
-                        ⚠️ Il cliente non ha dato abbastanza! Mancano €{(sessionToClose.total - parseFloat(changeCalculator.customerGives)).toFixed(2)}
+                        Mancano {formatPrice(sessionToClose.total - parseFloat(changeCalculator.customerGives))}
                       </p>
                     )}
                   </div>
@@ -2464,17 +2466,17 @@ export function Orders() {
             <div className="grid grid-cols-3 gap-4 p-4 bg-dark-900 rounded-xl">
               <div className="text-center">
                 <p className="text-sm text-dark-400">Totale</p>
-                <p className="text-lg font-bold text-white">€{sessionToClose.total.toFixed(2)}</p>
+                <p className="text-lg font-bold text-white">{formatPrice(sessionToClose.total)}</p>
               </div>
               <div className="text-center">
                 <p className="text-sm text-dark-400">Pagato</p>
                 <p className="text-lg font-bold text-emerald-400">
-                  €{(sessionToClose.total - remainingAmount).toFixed(2)}
+                  {formatPrice(sessionToClose.total - remainingAmount)}
                 </p>
               </div>
               <div className="text-center">
                 <p className="text-sm text-dark-400">Rimanente</p>
-                <p className="text-lg font-bold text-primary-400">€{remainingAmount.toFixed(2)}</p>
+                <p className="text-lg font-bold text-primary-400">{formatPrice(remainingAmount)}</p>
               </div>
             </div>
 
@@ -2499,7 +2501,7 @@ export function Orders() {
                         {payment.payment_method === 'cash' && <Banknote className="w-4 h-4 text-emerald-400" />}
                         {payment.payment_method === 'card' && <CreditCard className="w-4 h-4 text-blue-400" />}
                         {payment.payment_method === 'online' && <Globe className="w-4 h-4 text-purple-400" />}
-                        <span className="text-white">€{payment.amount.toFixed(2)}</span>
+                        <span className="text-white">{formatPrice(payment.amount)}</span>
                         {payment.notes && <span className="text-dark-400 text-sm">- {payment.notes}</span>}
                       </div>
                       <div className="flex items-center gap-2">
@@ -2591,7 +2593,7 @@ export function Orders() {
                         <div className="flex justify-between items-center">
                           <span className="text-dark-400">Totale da pagare:</span>
                           <span className="text-primary-400 font-bold text-lg">
-                            €{calculateRomanaAmount().toFixed(2)}
+                            {formatPrice(calculateRomanaAmount())}
                           </span>
                         </div>
                       </div>
@@ -2626,7 +2628,7 @@ export function Orders() {
                                 <div className="flex-1 min-w-0">
                                   <p className="text-white font-medium truncate">{item.menu_item_name}</p>
                                   <p className="text-xs text-dark-400">
-                                    €{item.price.toFixed(2)} • {item.remainingQty} rimasti
+                                    {formatPrice(item.price)} • {item.remainingQty} rimasti
                                   </p>
                                 </div>
                                 <div className="flex items-center gap-1 bg-dark-800 rounded-lg p-1">
@@ -2651,7 +2653,7 @@ export function Orders() {
                     {Object.keys(selectedItems).length > 0 && (
                       <div className="p-3 bg-dark-900 rounded-lg flex justify-between">
                         <span>Totale:</span>
-                        <span className="text-blue-400 font-bold">€{calculateSelectedItemsTotal().toFixed(2)}</span>
+                        <span className="text-blue-400 font-bold">{formatPrice(calculateSelectedItemsTotal())}</span>
                       </div>
                     )}
                     <button
@@ -2735,7 +2737,7 @@ export function Orders() {
                           <div className="p-3 bg-dark-900 rounded-lg flex justify-between">
                             <span className="text-emerald-400 font-semibold">RESTO:</span>
                             <span className="text-2xl font-bold text-emerald-400">
-                              €{calculateSplitChange().toFixed(2)}
+                              {formatPrice(calculateSplitChange())}
                             </span>
                           </div>
                         )}
@@ -2777,17 +2779,17 @@ export function Orders() {
             <div className="grid grid-cols-3 gap-4 p-4 bg-dark-900 rounded-xl">
               <div className="text-center">
                 <p className="text-sm text-dark-400">Totale</p>
-                <p className="text-lg font-bold text-white">€{sessionToClose.total.toFixed(2)}</p>
+                <p className="text-lg font-bold text-white">{formatPrice(sessionToClose.total)}</p>
               </div>
               <div className="text-center">
                 <p className="text-sm text-dark-400">Pagato</p>
                 <p className="text-lg font-bold text-emerald-400">
-                  €{(sessionToClose.total - remainingAmount).toFixed(2)}
+                  {formatPrice(sessionToClose.total - remainingAmount)}
                 </p>
               </div>
               <div className="text-center">
                 <p className="text-sm text-dark-400">Rimanente</p>
-                <p className="text-lg font-bold text-primary-400">€{remainingAmount.toFixed(2)}</p>
+                <p className="text-lg font-bold text-primary-400">{formatPrice(remainingAmount)}</p>
               </div>
             </div>
 
@@ -2806,7 +2808,7 @@ export function Orders() {
                           <span className="font-semibold text-white">Pagamento #{index + 1}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-lg font-bold text-primary-400">€{payment.amount.toFixed(2)}</span>
+                          <span className="text-lg font-bold text-primary-400">{formatPrice(payment.amount)}</span>
                           {payment.smac_passed && (
                             <span className="text-xs bg-primary-500/20 text-primary-400 px-2 py-0.5 rounded-full">SMAC</span>
                           )}
@@ -2823,7 +2825,7 @@ export function Orders() {
                             {payment.paid_items.map((item, i) => (
                               <div key={i} className="flex justify-between text-sm">
                                 <span className="text-dark-300">{item.quantity}x {item.menu_item_name}</span>
-                                <span className="text-dark-400">€{(item.price * item.quantity).toFixed(2)}</span>
+                                <span className="text-dark-400">{formatPrice(item.price * item.quantity)}</span>
                               </div>
                             ))}
                           </div>
@@ -2855,7 +2857,7 @@ export function Orders() {
                   {remainingSessionItems.map((item) => (
                     <div key={item.id} className="flex justify-between p-2 bg-dark-900 rounded-lg">
                       <span className="text-white">{item.remainingQty}x {item.menu_item_name}</span>
-                      <span className="text-primary-400">€{(item.price * item.remainingQty).toFixed(2)}</span>
+                      <span className="text-primary-400">{formatPrice(item.price * item.remainingQty)}</span>
                     </div>
                   ))}
                 </div>
@@ -2897,14 +2899,14 @@ export function Orders() {
                 {selectedReceipt.items.map((item, index) => (
                   <div key={index} className="flex justify-between">
                     <span>{item.quantity}x {item.name}</span>
-                    <span>€{item.total.toFixed(2)}</span>
+                    <span>{formatPrice(item.total)}</span>
                   </div>
                 ))}
               </div>
               <div className="border-t border-dashed border-gray-400 my-3"></div>
               <div className="flex justify-between font-bold text-lg">
                 <span>TOTALE</span>
-                <span>€{selectedReceipt.total.toFixed(2)}</span>
+                <span>{formatPrice(selectedReceipt.total)}</span>
               </div>
               <div className="text-xs mt-3">
                 <p>Pagamento: {selectedReceipt.payment_method === 'cash' ? 'Contanti' : selectedReceipt.payment_method === 'card' ? 'Carta' : 'Online'}</p>

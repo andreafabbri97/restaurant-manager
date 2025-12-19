@@ -16,10 +16,12 @@ import {
   getOrdersByStatus,
 } from '../lib/database';
 import { useLanguage } from '../context/LanguageContext';
+import { useCurrency } from '../hooks/useCurrency';
 import type { Order, InventoryItem } from '../types';
 
 export function Dashboard() {
   const { t } = useLanguage();
+  const { formatPrice } = useCurrency();
   const [todayStats, setTodayStats] = useState({ orders: 0, revenue: 0, avgOrder: 0 });
   const [pendingOrders, setPendingOrders] = useState<Order[]>([]);
   const [preparingOrders, setPreparingOrders] = useState<Order[]>([]);
@@ -91,7 +93,7 @@ export function Dashboard() {
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1">
               <p className="stat-label text-xs sm:text-sm">{t('dashboard.revenueToday')}</p>
-              <p className="stat-value text-xl sm:text-2xl">€{todayStats.revenue.toFixed(2)}</p>
+              <p className="stat-value text-xl sm:text-2xl">{formatPrice(todayStats.revenue)}</p>
             </div>
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
               <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-400" />
@@ -103,7 +105,7 @@ export function Dashboard() {
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1">
               <p className="stat-label text-xs sm:text-sm">{t('dashboard.avgOrder')}</p>
-              <p className="stat-value text-xl sm:text-2xl">€{todayStats.avgOrder.toFixed(2)}</p>
+              <p className="stat-value text-xl sm:text-2xl">{formatPrice(todayStats.avgOrder)}</p>
             </div>
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-blue-500/20 flex items-center justify-center flex-shrink-0">
               <Users className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
@@ -148,7 +150,7 @@ export function Dashboard() {
                        order.order_type === 'takeaway' ? t('orders.takeaway') : t('orders.delivery')}
                     </p>
                   </div>
-                  <p className="font-semibold text-primary-400 text-sm sm:text-base">€{order.total.toFixed(2)}</p>
+                  <p className="font-semibold text-primary-400 text-sm sm:text-base">{formatPrice(order.total)}</p>
                 </div>
               ))
             )}
@@ -182,7 +184,7 @@ export function Dashboard() {
                        order.order_type === 'takeaway' ? t('orders.takeaway') : t('orders.delivery')}
                     </p>
                   </div>
-                  <p className="font-semibold text-primary-400 text-sm sm:text-base">€{order.total.toFixed(2)}</p>
+                  <p className="font-semibold text-primary-400 text-sm sm:text-base">{formatPrice(order.total)}</p>
                 </div>
               ))
             )}

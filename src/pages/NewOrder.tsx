@@ -18,6 +18,7 @@ import { showToast } from '../components/ui/Toast';
 import { CartContent } from '../components/order/CartContent';
 import { Modal } from '../components/ui/Modal';
 import { useLanguage } from '../context/LanguageContext';
+import { useCurrency } from '../hooks/useCurrency';
 import type { Category, MenuItem, Table, CartItem, Settings, TableSession, Order } from '../types';
 
 type OrderType = 'dine_in' | 'takeaway' | 'delivery';
@@ -25,6 +26,7 @@ type PaymentMethod = 'cash' | 'card' | 'online';
 
 export function NewOrder() {
   useLanguage(); // Ready for translations
+  const { formatPrice } = useCurrency();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [categories, setCategories] = useState<Category[]>([]);
@@ -507,7 +509,7 @@ export function NewOrder() {
                     {/* Footer con prezzo e controlli */}
                     <div className="flex items-center justify-between mt-2">
                       <p className="text-xl font-bold text-primary-400">
-                        €{item.price.toFixed(2)}
+                        {formatPrice(item.price)}
                       </p>
 
                       {/* Pulsante rimuovi - visibile solo se nel carrello */}
@@ -580,7 +582,7 @@ export function NewOrder() {
                   {/* Footer con prezzo e controlli */}
                   <div className="flex items-center justify-between mt-1">
                     <p className="text-lg font-bold text-primary-400">
-                      €{item.price.toFixed(2)}
+                      {formatPrice(item.price)}
                     </p>
 
                     {/* Pulsante rimuovi - visibile solo se nel carrello */}
@@ -623,7 +625,7 @@ export function NewOrder() {
             </div>
             <div className="flex items-center gap-2">
               <span className="text-xl font-bold text-primary-400">
-                €{grandTotal.toFixed(2)}
+                {formatPrice(grandTotal)}
               </span>
               <ChevronUp className="w-5 h-5 text-dark-400" />
             </div>
@@ -731,7 +733,7 @@ export function NewOrder() {
                 </div>
                 <div>
                   <p className="text-sm text-dark-400">Totale</p>
-                  <p className="text-lg font-bold text-primary-400">€{detectedSession.total.toFixed(2)}</p>
+                  <p className="text-lg font-bold text-primary-400">{formatPrice(detectedSession.total)}</p>
                 </div>
               </div>
 
@@ -749,7 +751,7 @@ export function NewOrder() {
                     {detectedSessionOrders.map((order) => (
                       <div key={order.id} className="flex justify-between text-sm">
                         <span className="text-dark-300">Comanda #{order.order_number || 1}</span>
-                        <span className="text-white">€{order.total.toFixed(2)}</span>
+                        <span className="text-white">{formatPrice(order.total)}</span>
                       </div>
                     ))}
                   </div>
@@ -844,7 +846,7 @@ export function NewOrder() {
               <h3 className="font-semibold text-white mb-2">Riepilogo Ordine</h3>
               <div className="flex justify-between items-center">
                 <span className="text-dark-400">{cartItemsCount} articoli</span>
-                <span className="text-xl font-bold text-primary-400">€{grandTotal.toFixed(2)}</span>
+                <span className="text-xl font-bold text-primary-400">{formatPrice(grandTotal)}</span>
               </div>
             </div>
 
