@@ -368,52 +368,58 @@ export function Menu() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white">Menu</h1>
-          <p className="text-dark-400 mt-1">Gestisci il menu del ristorante</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">Menu</h1>
+          <p className="text-dark-400 mt-1 text-sm sm:text-base">Gestisci il menu del ristorante</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="grid grid-cols-3 sm:flex sm:items-center gap-2 sm:gap-3">
           <button
             onClick={exportMenuToPDF}
-            className="btn-secondary"
+            className="btn-secondary text-sm sm:text-base px-3 py-2 sm:px-6 sm:py-3"
+            title="Esporta PDF"
           >
-            <FileDown className="w-5 h-5" />
-            Esporta PDF
+            <FileDown className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="hidden sm:inline">Esporta PDF</span>
           </button>
           <button
             onClick={() => setShowCategoryModal(true)}
-            className="btn-secondary"
+            className="btn-secondary text-sm sm:text-base px-3 py-2 sm:px-6 sm:py-3"
+            title="Nuova Categoria"
           >
-            <FolderPlus className="w-5 h-5" />
-            Nuova Categoria
+            <FolderPlus className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="hidden sm:inline">Categoria</span>
           </button>
-          <button onClick={() => openItemModal()} className="btn-primary">
-            <Plus className="w-5 h-5" />
-            Nuovo Articolo
+          <button
+            onClick={() => openItemModal()}
+            className="btn-primary text-sm sm:text-base px-3 py-2 sm:px-6 sm:py-3"
+            title="Nuovo Articolo"
+          >
+            <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="hidden sm:inline">Articolo</span>
           </button>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-4">
-        <div className="relative flex-1 max-w-xs">
+      <div className="space-y-3">
+        <div className="relative w-full sm:max-w-xs">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-dark-400" />
           <input
             type="text"
             placeholder="Cerca articolo..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="input pl-10"
+            className="input pl-10 w-full"
           />
         </div>
 
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap scrollbar-hide">
           <button
             onClick={() => setSelectedCategory(null)}
-            className={`px-4 py-2 rounded-xl font-medium transition-all ${
+            className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl font-medium transition-all whitespace-nowrap text-sm sm:text-base flex-shrink-0 ${
               selectedCategory === null
                 ? 'bg-primary-500 text-dark-900'
                 : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
@@ -425,7 +431,7 @@ export function Menu() {
             <button
               key={category.id}
               onClick={() => setSelectedCategory(category.id)}
-              className={`px-4 py-2 rounded-xl font-medium transition-all ${
+              className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl font-medium transition-all whitespace-nowrap text-sm sm:text-base flex-shrink-0 ${
                 selectedCategory === category.id
                   ? 'bg-primary-500 text-dark-900'
                   : 'bg-dark-800 text-dark-300 hover:bg-dark-700'

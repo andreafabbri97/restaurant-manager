@@ -114,71 +114,71 @@ export function DishCosts() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-white">Costo Piatti</h1>
-          <p className="text-dark-400 mt-1">Analisi costi e margini di profitto</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">Costo Piatti</h1>
+          <p className="text-dark-400 mt-1 text-sm sm:text-base">Analisi costi e margini di profitto</p>
         </div>
-        <button onClick={loadData} className="btn-secondary">
-          <RefreshCw className="w-5 h-5" />
-          Aggiorna
+        <button onClick={loadData} className="btn-secondary self-start sm:self-auto">
+          <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5" />
+          <span className="sm:inline">Aggiorna</span>
         </button>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <div className="stat-card">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="stat-label">Piatti Totali</p>
-              <p className="stat-value">{summary?.totalDishes || 0}</p>
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <p className="stat-label text-xs sm:text-sm">Piatti Totali</p>
+              <p className="stat-value text-xl sm:text-2xl">{summary?.totalDishes || 0}</p>
             </div>
-            <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center">
-              <ChefHat className="w-6 h-6 text-blue-400" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+              <ChefHat className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
             </div>
           </div>
         </div>
 
         <div className="stat-card glow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="stat-label">Margine Medio</p>
-              <p className={`stat-value ${getMarginColor(summary?.avgProfitMargin || 0)}`}>
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <p className="stat-label text-xs sm:text-sm">Margine Medio</p>
+              <p className={`stat-value text-xl sm:text-2xl ${getMarginColor(summary?.avgProfitMargin || 0)}`}>
                 {summary?.avgProfitMargin || 0}%
               </p>
             </div>
-            <div className="w-12 h-12 rounded-xl bg-primary-500/20 flex items-center justify-center">
-              <Percent className="w-6 h-6 text-primary-400" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary-500/20 flex items-center justify-center flex-shrink-0">
+              <Percent className="w-5 h-5 sm:w-6 sm:h-6 text-primary-400" />
             </div>
           </div>
         </div>
 
         <div className="stat-card">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="stat-label">Alto Margine (&gt;60%)</p>
-              <p className="stat-value text-emerald-400">
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <p className="stat-label text-xs sm:text-sm truncate">Alto Margine</p>
+              <p className="stat-value text-xl sm:text-2xl text-emerald-400">
                 {summary?.highMarginDishes.length || 0}
               </p>
             </div>
-            <div className="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-              <TrendingUp className="w-6 h-6 text-emerald-400" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+              <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-400" />
             </div>
           </div>
         </div>
 
         <div className="stat-card">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="stat-label">Basso Margine (&lt;40%)</p>
-              <p className="stat-value text-red-400">
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <p className="stat-label text-xs sm:text-sm truncate">Basso Margine</p>
+              <p className="stat-value text-xl sm:text-2xl text-red-400">
                 {summary?.lowMarginDishes.length || 0}
               </p>
             </div>
-            <div className="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center">
-              <TrendingDown className="w-6 h-6 text-red-400" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-red-500/20 flex items-center justify-center flex-shrink-0">
+              <TrendingDown className="w-5 h-5 sm:w-6 sm:h-6 text-red-400" />
             </div>
           </div>
         </div>
@@ -213,57 +213,104 @@ export function DishCosts() {
       )}
 
       {/* Search and Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
+      <div className="space-y-3">
+        <div className="relative w-full sm:max-w-xs">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-dark-500" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Cerca piatto..."
-            className="input pl-10"
+            className="input pl-10 w-full"
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
           <button
             onClick={() => toggleSort('name')}
-            className={`px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-1 ${
+            className={`px-3 py-1.5 sm:py-2 rounded-lg text-sm transition-colors flex items-center gap-1 whitespace-nowrap flex-shrink-0 ${
               sortBy === 'name' ? 'bg-primary-500 text-dark-900' : 'bg-dark-700 text-dark-300 hover:bg-dark-600'
             }`}
           >
             Nome
-            {sortBy === 'name' && <ArrowUpDown className="w-4 h-4" />}
+            {sortBy === 'name' && <ArrowUpDown className="w-3 h-3 sm:w-4 sm:h-4" />}
           </button>
           <button
             onClick={() => toggleSort('margin')}
-            className={`px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-1 ${
+            className={`px-3 py-1.5 sm:py-2 rounded-lg text-sm transition-colors flex items-center gap-1 whitespace-nowrap flex-shrink-0 ${
               sortBy === 'margin' ? 'bg-primary-500 text-dark-900' : 'bg-dark-700 text-dark-300 hover:bg-dark-600'
             }`}
           >
             Margine
-            {sortBy === 'margin' && <ArrowUpDown className="w-4 h-4" />}
+            {sortBy === 'margin' && <ArrowUpDown className="w-3 h-3 sm:w-4 sm:h-4" />}
           </button>
           <button
             onClick={() => toggleSort('cost')}
-            className={`px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-1 ${
+            className={`px-3 py-1.5 sm:py-2 rounded-lg text-sm transition-colors flex items-center gap-1 whitespace-nowrap flex-shrink-0 ${
               sortBy === 'cost' ? 'bg-primary-500 text-dark-900' : 'bg-dark-700 text-dark-300 hover:bg-dark-600'
             }`}
           >
             Costo
-            {sortBy === 'cost' && <ArrowUpDown className="w-4 h-4" />}
+            {sortBy === 'cost' && <ArrowUpDown className="w-3 h-3 sm:w-4 sm:h-4" />}
           </button>
         </div>
       </div>
 
-      {/* Dish Costs Table */}
+      {/* Dish Costs - Cards on mobile, Table on desktop */}
       <div className="card">
         <div className="card-header">
-          <h2 className="font-semibold text-white flex items-center gap-2">
-            <Calculator className="w-5 h-5" />
+          <h2 className="font-semibold text-white flex items-center gap-2 text-sm sm:text-base">
+            <Calculator className="w-4 h-4 sm:w-5 sm:h-5" />
             Analisi Costi ({filteredAndSortedCosts.length} piatti)
           </h2>
         </div>
-        <div className="overflow-x-auto">
+
+        {/* Mobile Card View */}
+        <div className="md:hidden divide-y divide-dark-700">
+          {filteredAndSortedCosts.map((dish) => (
+            <div key={dish.menu_item_id} className="p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className={`w-10 h-10 rounded-lg ${getMarginBgColor(dish.profit_margin_percent)} flex items-center justify-center flex-shrink-0`}>
+                    <ChefHat className={`w-5 h-5 ${getMarginColor(dish.profit_margin_percent)}`} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-medium text-white truncate">{dish.menu_item_name}</p>
+                    <p className="text-xs text-dark-500">{dish.ingredients.length} ingredienti</p>
+                  </div>
+                </div>
+                <span className={`inline-flex items-center px-2 py-1 rounded-full text-sm font-bold ${getMarginBgColor(dish.profit_margin_percent)} ${getMarginColor(dish.profit_margin_percent)} flex-shrink-0`}>
+                  {dish.profit_margin_percent}%
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="bg-dark-900 rounded-lg p-2">
+                  <p className="text-[10px] text-dark-500 uppercase">Prezzo</p>
+                  <p className="text-sm font-semibold text-white">{dish.selling_price.toFixed(2)}€</p>
+                </div>
+                <div className="bg-dark-900 rounded-lg p-2">
+                  <p className="text-[10px] text-dark-500 uppercase">Costo</p>
+                  <p className="text-sm font-semibold text-dark-300">{dish.ingredient_cost.toFixed(2)}€</p>
+                </div>
+                <div className="bg-dark-900 rounded-lg p-2">
+                  <p className="text-[10px] text-dark-500 uppercase">Profitto</p>
+                  <p className={`text-sm font-semibold ${dish.profit_margin >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                    {dish.profit_margin.toFixed(2)}€
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => handleViewDetail(dish)}
+                className="w-full py-2 bg-dark-700 rounded-lg hover:bg-dark-600 transition-colors flex items-center justify-center gap-2 text-sm text-dark-300"
+              >
+                <Eye className="w-4 h-4" />
+                Vedi dettaglio
+              </button>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-dark-700">
