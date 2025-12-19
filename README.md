@@ -313,6 +313,24 @@ Ricarica la pagina (F5 o tasto ricarica del browser).
 
 ---
 
+## Come applicare sconti a un ordine
+
+Puoi modificare il totale di un ordine per applicare sconti o arrotondamenti:
+
+1. Vai su **Ordini** → **Storico**
+2. Clicca sull'icona **matita** dell'ordine da modificare
+3. Nel popup "Modifica Ordine", trovi la sezione **Totale Ordine**
+4. Modifica l'importo (es. da €30.30 a €30.00)
+5. Il sistema mostra lo sconto applicato (es. "Sconto: -€0.30")
+6. Clicca **Salva Modifiche**
+
+Utile per:
+- Arrotondare importi scomodi (€30.30 → €30)
+- Applicare sconti fissi concordati con il cliente
+- Correggere errori di prezzo
+
+---
+
 ## Scorciatoie utili
 
 | Azione | Come fare |
@@ -329,6 +347,7 @@ Ricarica la pagina (F5 o tasto ricarica del browser).
 | Scontrino parziale | Stato Conto > Stampa Scontrino su un pagamento |
 | Dividi da storico | Ordini > Storico > ordine > Dividi Conto |
 | Chiudi conto da storico | Ordini > Storico > Conto Aperto > Chiudi Conto |
+| Sconto ordine | Ordini > Storico > Modifica > Cambia totale |
 
 ---
 
@@ -348,7 +367,7 @@ Per problemi tecnici contattare l'amministratore del sistema.
 | Ordini | Gestione ordini con stati, filtri, storico ultimi 7 giorni |
 | Tavoli | Mappa tavoli, prenotazioni, sessioni, split bill |
 | Menu | CRUD prodotti, categorie, disponibilita, export PDF |
-| Inventario | Scorte, carichi/scarichi, soglie alert, EOQ |
+| Inventario | Scorte, carichi/scarichi, soglie alert, EOQ, fatturazione automatica |
 | Ricette | Collegamento piatti-ingredienti per costo e scarico automatico |
 | Costo Piatti | Margini di profitto, analisi per piatto |
 | Personale | Turni, presenze, ore lavorate |
@@ -368,4 +387,4 @@ Per problemi tecnici contattare l'amministratore del sistema.
 
 ---
 
-*Versione 2.2 - Kebab Restaurant Management System*
+*Versione 2.3 - Kebab Restaurant Management System*

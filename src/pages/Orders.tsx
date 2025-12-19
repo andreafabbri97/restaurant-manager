@@ -91,7 +91,7 @@ export function Orders() {
     delivered: null,
   });
 
-  // Edit modal state
+  // Edit modal state (full - for history/admin)
   const [showEditModal, setShowEditModal] = useState(false);
   const [tables, setTables] = useState<Table[]>([]);
   const [editForm, setEditForm] = useState({
@@ -106,6 +106,12 @@ export function Orders() {
     total: 0, // Per modifiche manuali al totale (sconti/arrotondamenti)
     originalTotal: 0, // Per mostrare il totale originale
   });
+
+  // Kanban edit modal state (simplified - for kitchen)
+  const [showKanbanEditModal, setShowKanbanEditModal] = useState(false);
+  const [kanbanEditItems, setKanbanEditItems] = useState<OrderItem[]>([]);
+  const [kanbanEditStatus, setKanbanEditStatus] = useState<Order['status']>('pending');
+  const [kanbanEditNotes, setKanbanEditNotes] = useState('');
 
   // Storico tab state
   const [activeTab, setActiveTab] = useState<'today' | 'history'>('today');
@@ -310,6 +316,42 @@ export function Orders() {
     }
 
     setShowEditModal(true);
+  }
+
+  // Modal semplificato per cucina (solo stato e note)
+  async function openKanbanEditModal(order: Order) {
+    setSelectedOrder(order);
+    setKanbanEditStatus(order.status);
+    setKanbanEditNotes(order.notes || '');
+
+    // Carica items della comanda
+    try {
+      const items = await getOrderItems(order.id);
+      setKanbanEditItems(items);
+    } catch (error) {
+      console.error('Error loading order items:', error);
+      setKanbanEditItems([]);
+    }
+
+    setShowKanbanEditModal(true);
+  }
+
+  async function handleSaveKanbanEdit() {
+    if (!selectedOrder) return;
+
+    try {
+      await updateOrder(selectedOrder.id, {
+        status: kanbanEditStatus,
+        notes: kanbanEditNotes || undefined,
+      });
+
+      showToast('Comanda modificata con successo', 'success');
+      setShowKanbanEditModal(false);
+      loadOrdersCallback();
+    } catch (error) {
+      console.error('Error updating order:', error);
+      showToast('Errore nella modifica', 'error');
+    }
   }
 
   async function handleSaveEdit() {
@@ -1121,7 +1163,7 @@ export function Orders() {
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    openEditModal(order);
+                                    openKanbanEditModal(order);
                                   }}
                                   className="btn-secondary btn-sm p-1.5 sm:p-2"
                                   title="Modifica comanda"
@@ -2149,6 +2191,80 @@ export function Orders() {
               title="Elimina comanda"
             >
               <Trash2 className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Kanban Edit Modal (Simplified - Solo Stato e Note) */}
+      <Modal
+        isOpen={showKanbanEditModal}
+        onClose={() => setShowKanbanEditModal(false)}
+        title={`Modifica Comanda #${selectedOrder?.id}`}
+        size="md"
+      >
+        <div className="space-y-4">
+          {/* Prodotti della comanda (solo lettura) */}
+          <div>
+            <label className="label">Prodotti nella Comanda</label>
+            <div className="bg-dark-900 rounded-xl p-3 space-y-2 max-h-48 overflow-y-auto">
+              {kanbanEditItems.length === 0 ? (
+                <p className="text-dark-400 text-sm text-center py-2">Nessun prodotto</p>
+              ) : (
+                kanbanEditItems.map((item) => (
+                  <div key={item.id} className="flex justify-between items-center py-1 border-b border-dark-700 last:border-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-primary-400 font-medium">{item.quantity}x</span>
+                      <span className="text-white">{item.menu_item_name}</span>
+                    </div>
+                    <span className="text-dark-300">€{(item.price * item.quantity).toFixed(2)}</span>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Stato */}
+          <div>
+            <label className="label">Stato Comanda</label>
+            <select
+              value={kanbanEditStatus}
+              onChange={(e) => setKanbanEditStatus(e.target.value as Order['status'])}
+              className="select"
+            >
+              <option value="pending">In Attesa</option>
+              <option value="preparing">In Preparazione</option>
+              <option value="ready">Pronto</option>
+              <option value="delivered">Consegnato</option>
+              <option value="cancelled">Annullato</option>
+            </select>
+          </div>
+
+          {/* Note */}
+          <div>
+            <label className="label">Note Cucina</label>
+            <textarea
+              value={kanbanEditNotes}
+              onChange={(e) => setKanbanEditNotes(e.target.value)}
+              className="input min-h-[80px]"
+              placeholder="Note per la cucina..."
+            />
+          </div>
+
+          {/* Info */}
+          <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3">
+            <p className="text-amber-400 text-sm">
+              Da questa vista puoi solo modificare lo stato e le note. Per modificare totali o chiudere conti, usa lo Storico Ordini.
+            </p>
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-3 pt-4">
+            <button onClick={handleSaveKanbanEdit} className="btn-primary flex-1">
+              Salva Modifiche
+            </button>
+            <button onClick={() => setShowKanbanEditModal(false)} className="btn-secondary">
+              Annulla
             </button>
           </div>
         </div>

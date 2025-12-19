@@ -2369,13 +2369,17 @@ export async function getSessionPayments(sessionId: number): Promise<SessionPaym
 }
 
 export async function getSessionRemainingAmount(sessionId: number): Promise<number> {
-  const session = await getTableSession(sessionId);
-  if (!session) return 0;
+  // Calcola il totale dagli ordini della sessione invece di usare session.total
+  // perché session.total potrebbe non essere aggiornato correttamente
+  const sessionOrders = await getSessionOrders(sessionId);
+  const sessionTotal = sessionOrders.reduce((sum, o) => sum + o.total, 0);
+
+  if (sessionTotal === 0) return 0;
 
   const payments = await getSessionPayments(sessionId);
   const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
 
-  return Math.max(0, session.total - totalPaid);
+  return Math.max(0, sessionTotal - totalPaid);
 }
 
 export async function deleteSessionPayment(paymentId: number): Promise<void> {

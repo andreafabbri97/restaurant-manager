@@ -511,6 +511,22 @@ export function GuideFAQ() {
       question: 'Il cliente vuole lasciare una mancia',
       answer: 'Aggiungi l\'importo della mancia al totale prima di registrare il pagamento, oppure registrala come pagamento separato con nota "mancia".',
     },
+    // === SCONTI ===
+    {
+      category: 'Sconti',
+      question: 'Come applico uno sconto a un ordine?',
+      answer: 'Vai su Ordini → Storico, clicca l\'icona matita (Modifica) sull\'ordine. Nella sezione "Totale Ordine" puoi modificare l\'importo. Il sistema mostra lo sconto applicato.',
+    },
+    {
+      category: 'Sconti',
+      question: 'Il conto è €30.30, voglio arrotondare a €30',
+      answer: 'Dallo storico ordini, clicca Modifica sull\'ordine, cambia il totale da €30.30 a €30.00 e salva. Lo sconto di -€0.30 viene mostrato automaticamente.',
+    },
+    {
+      category: 'Sconti',
+      question: 'Posso aumentare il totale di un ordine?',
+      answer: 'Sì, dalla modifica ordine puoi aumentare il totale (ad esempio per aggiungere una mancia o un extra). Il sistema mostra la differenza come aggiunta.',
+    },
     // === TECNICO ===
     {
       category: 'Tecnico',
@@ -568,6 +584,16 @@ export function GuideFAQ() {
       category: 'Inventario',
       question: 'L\'inventario non corrisponde alla realtà',
       answer: 'Puoi fare uno "Scarico" manuale per allineare i dati. Registra la differenza come "Scarico inventario" con una nota esplicativa.',
+    },
+    {
+      category: 'Inventario',
+      question: 'Come creo automaticamente una fattura quando registro una fornitura?',
+      answer: 'Quando fai un carico, attiva il toggle "Crea fattura automaticamente". Inserisci fornitore e numero fattura: il sistema creerà la fattura con l\'importo basato sul costo dell\'ingrediente.',
+    },
+    {
+      category: 'Inventario',
+      question: 'Il toggle fattura automatica non compare',
+      answer: 'Il toggle appare solo quando registri un carico (supply_in). Per gli scarichi manuali non è disponibile perché non sono forniture acquistate.',
     },
     {
       category: 'Personale',
