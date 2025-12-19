@@ -25,7 +25,6 @@ import type {
   TableSession,
   SessionPayment,
   InventorySettings,
-  CostCalculationMethod,
 } from '../types';
 
 // Local storage fallback for demo mode
@@ -1120,8 +1119,6 @@ export async function calculateNewUnitCost(
         const items = await getSupplyItems(supplyId);
         const item = items.find(i => i.ingredient_id === ingredientId);
         if (item) {
-          // unit_cost è il costo totale per quella fornitura, quindi calcoliamo il costo per unità
-          const unitCostPerUnit = item.unit_cost / item.quantity;
           totalCost += item.unit_cost;
           totalQty += item.quantity;
         }
