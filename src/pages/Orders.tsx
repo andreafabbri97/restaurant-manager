@@ -17,6 +17,8 @@ import {
   CheckSquare,
   Square,
   Filter,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { getOrders, getOrderItems, updateOrderStatus, deleteOrder, updateOrder, getTables, getOrdersByDateRange, updateOrderStatusBulk, deleteOrdersBulk } from '../lib/database';
 import { showToast } from '../components/ui/Toast';
@@ -51,6 +53,8 @@ export function Orders() {
 
   // Mappa degli items per ogni ordine (per vista cucina)
   const [allOrderItems, setAllOrderItems] = useState<Record<number, OrderItem[]>>({});
+  // Card espanse nel Kanban (per vista cucina)
+  const [expandedOrders, setExpandedOrders] = useState<Set<number>>(new Set());
 
   // Edit modal state
   const [showEditModal, setShowEditModal] = useState(false);
@@ -455,110 +459,131 @@ export function Orders() {
                       Nessun ordine
                     </p>
                   ) : (
-                    statusOrders.map((order) => (
-                      <div
-                        key={order.id}
-                        className="bg-dark-900 rounded-xl p-4 space-y-3"
-                      >
-                        <div className="flex items-start justify-between">
-                          <div>
-                            {order.session_id ? (
-                              // Ordine con sessione
-                              <>
-                                <p className="font-semibold text-white">
-                                  {order.table_name} - Comanda #{order.order_number || 1}
-                                </p>
-                                <p className={`text-xs ${
-                                  order.session_status === 'open'
-                                    ? 'text-primary-400/70'
-                                    : 'text-emerald-400/70'
-                                }`}>
-                                  {order.session_status === 'open' ? 'Conto Aperto' : 'Conto Chiuso'}
-                                </p>
-                              </>
-                            ) : (
-                              // Ordine singolo normale
-                              <>
-                                <p className="font-semibold text-white">
-                                  Ordine #{order.id}
-                                </p>
-                                <p className="text-sm text-dark-400">
-                                  {orderTypeLabels[order.order_type]}
-                                  {order.table_name && ` - ${order.table_name}`}
-                                </p>
-                              </>
-                            )}
-                            {order.customer_name && (
-                              <p className="text-sm text-dark-400">
-                                {order.customer_name}
-                              </p>
-                            )}
-                          </div>
-                          <p className="font-bold text-primary-400">
-                            €{order.total.toFixed(2)}
-                          </p>
-                        </div>
+                    statusOrders.map((order) => {
+                      const isExpanded = expandedOrders.has(order.id);
+                      const toggleExpand = () => {
+                        setExpandedOrders(prev => {
+                          const next = new Set(prev);
+                          if (next.has(order.id)) {
+                            next.delete(order.id);
+                          } else {
+                            next.add(order.id);
+                          }
+                          return next;
+                        });
+                      };
 
-                        {order.notes && (
-                          <p className="text-sm text-dark-400 bg-dark-800 p-2 rounded-lg">
-                            📝 {order.notes}
-                          </p>
-                        )}
-
-                        {/* Items dell'ordine - Vista Cucina */}
-                        {allOrderItems[order.id] && allOrderItems[order.id].length > 0 && (
-                          <div className="bg-dark-800 rounded-lg p-3 space-y-1">
-                            {allOrderItems[order.id].map((item) => (
-                              <div key={item.id} className="flex items-start gap-2">
-                                <span className="font-bold text-primary-400 min-w-[24px]">
-                                  {item.quantity}x
+                      return (
+                        <div
+                          key={order.id}
+                          className="bg-dark-900 rounded-xl overflow-hidden"
+                        >
+                          {/* Header compatto - sempre visibile */}
+                          <div
+                            onClick={toggleExpand}
+                            className="p-3 cursor-pointer hover:bg-dark-800 transition-colors flex items-center justify-between gap-2"
+                          >
+                            <div className="flex items-center gap-3 min-w-0 flex-1">
+                              {/* ID sempre visibile */}
+                              <span className="text-xs font-mono bg-dark-700 px-2 py-1 rounded text-dark-300 flex-shrink-0">
+                                #{order.id}
+                              </span>
+                              {/* Titolo ordine */}
+                              <span className="font-medium text-white truncate">
+                                {order.session_id
+                                  ? `${order.table_name} - Comanda #${order.order_number || 1}`
+                                  : order.table_name
+                                  ? `${orderTypeLabels[order.order_type]} - ${order.table_name}`
+                                  : `${orderTypeLabels[order.order_type]}`}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              {/* Indicatore items */}
+                              {allOrderItems[order.id] && (
+                                <span className="text-xs text-dark-400">
+                                  {allOrderItems[order.id].length} item
                                 </span>
-                                <div className="flex-1">
-                                  <span className="text-white">{item.menu_item_name}</span>
-                                  {item.notes && (
-                                    <p className="text-xs text-amber-400 mt-0.5">
-                                      ⚠️ {item.notes}
-                                    </p>
+                              )}
+                              {/* Chevron */}
+                              {isExpanded ? (
+                                <ChevronUp className="w-4 h-4 text-dark-400" />
+                              ) : (
+                                <ChevronDown className="w-4 h-4 text-dark-400" />
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Contenuto espanso */}
+                          {isExpanded && (
+                            <div className="px-3 pb-3 space-y-3 border-t border-dark-700">
+                              {/* Info aggiuntive */}
+                              <div className="flex items-center justify-between pt-3">
+                                <div className="text-sm text-dark-400">
+                                  {order.customer_name && (
+                                    <span>{order.customer_name}</span>
+                                  )}
+                                  {order.session_id && (
+                                    <span className={`ml-2 text-xs ${
+                                      order.session_status === 'open'
+                                        ? 'text-primary-400/70'
+                                        : 'text-emerald-400/70'
+                                    }`}>
+                                      {order.session_status === 'open' ? 'Conto Aperto' : 'Conto Chiuso'}
+                                    </span>
                                   )}
                                 </div>
+                                <p className="font-bold text-primary-400">
+                                  €{order.total.toFixed(2)}
+                                </p>
                               </div>
-                            ))}
-                          </div>
-                        )}
 
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => viewOrderDetails(order)}
-                              className="btn-ghost btn-sm flex-1"
-                            >
-                              <Eye className="w-4 h-4" />
-                              Dettagli
-                            </button>
-                            <button
-                              onClick={() => openEditModal(order)}
-                              className="btn-secondary btn-sm"
-                              title="Modifica ordine"
-                            >
-                              <Edit2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                          {config.next && (
-                            <button
-                              onClick={() => handleStatusChange(order)}
-                              className="btn-success btn-sm w-full"
-                            >
-                              <CheckCircle className="w-4 h-4" />
-                              {status === 'pending'
-                                ? 'Prepara'
-                                : status === 'preparing'
-                                ? 'Pronto'
-                                : 'Consegna'}
-                            </button>
+                              {/* Note ordine */}
+                              {order.notes && (
+                                <p className="text-sm text-dark-400 bg-dark-800 p-2 rounded-lg">
+                                  📝 {order.notes}
+                                </p>
+                              )}
+
+                              {/* Items dell'ordine - Vista Cucina */}
+                              {allOrderItems[order.id] && allOrderItems[order.id].length > 0 && (
+                                <div className="bg-dark-800 rounded-lg p-3 space-y-1">
+                                  {allOrderItems[order.id].map((item) => (
+                                    <div key={item.id} className="flex items-start gap-2">
+                                      <span className="font-bold text-primary-400 min-w-[24px]">
+                                        {item.quantity}x
+                                      </span>
+                                      <div className="flex-1">
+                                        <span className="text-white">{item.menu_item_name}</span>
+                                        {item.notes && (
+                                          <p className="text-xs text-amber-400 mt-0.5">
+                                            ⚠️ {item.notes}
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+
+                              {/* Pulsante azione */}
+                              {config.next && (
+                                <button
+                                  onClick={() => handleStatusChange(order)}
+                                  className="btn-success btn-sm w-full"
+                                >
+                                  <CheckCircle className="w-4 h-4" />
+                                  {status === 'pending'
+                                    ? 'Prepara'
+                                    : status === 'preparing'
+                                    ? 'Pronto'
+                                    : 'Consegna'}
+                                </button>
+                              )}
+                            </div>
                           )}
                         </div>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
               </div>
