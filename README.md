@@ -1,73 +1,185 @@
-# React + TypeScript + Vite
+# Kebab Restaurant - Guida Operativa
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Questo manuale spiega come usare l'app per gestire il ristorante. Scritto per chi lavora in sala, non servono competenze tecniche.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Come fare un ordine veloce (asporto/domicilio)
 
-## React Compiler
+1. Vai su **Nuovo Ordine** dal menu laterale
+2. In alto, scegli **Asporto** o **Domicilio**
+3. Inserisci nome e telefono del cliente
+4. Clicca sui prodotti per aggiungerli al carrello
+5. Usa **+** e **-** per modificare le quantita
+6. Scegli il metodo di pagamento (Contanti, Carta, Online)
+7. Se il cliente ha la SMAC, spunta la casella
+8. Clicca **Invia Ordine**
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+L'ordine appare nella lista Ordini e in Cucina.
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Come aprire un conto al tavolo
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+1. Vai su **Tavoli**
+2. Clicca sul tavolo verde (disponibile)
+3. Si apre "Apri Conto": inserisci numero coperti
+4. Opzionale: inserisci nome e telefono cliente
+5. Clicca **Apri Conto**
+6. Il tavolo diventa rosso (occupato)
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+Se il cliente ha prenotato, i dati si compilano automaticamente.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+---
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Come aggiungere una comanda a un tavolo gia aperto
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+1. Vai su **Tavoli**
+2. Clicca sul tavolo rosso (occupato)
+3. Si apre il riepilogo del conto
+4. Clicca **Aggiungi Comanda**
+5. Aggiungi i prodotti come per un ordine normale
+6. Clicca **Invia Ordine**
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+Ogni comanda ha un numero (Comanda #1, #2, ecc.).
+
+---
+
+## Come chiudere un conto (pagamento completo)
+
+1. Clicca sul tavolo rosso
+2. Nel riepilogo conto, clicca **Chiudi Conto**
+3. Scegli metodo pagamento: Contanti, Carta, Online
+4. Se contanti: usa il **Calcolatore Resto**
+   - Clicca sul taglio (5, 10, 20, 50, 100) o inserisci importo
+   - Leggi il resto da dare al cliente
+5. Spunta SMAC se passata
+6. Clicca **Conferma Pagamento**
+
+Il tavolo torna verde (disponibile).
+
+---
+
+## Come dividere il conto (split bill)
+
+1. Clicca sul tavolo rosso
+2. Clicca **Dividi Conto**
+3. Scegli una delle 3 modalita:
+
+### Manuale
+- Inserisci l'importo che la persona paga
+- Usa i pulsanti rapidi: Tutto, Meta, 1/N
+- Scegli Contanti o Carta
+- Se contanti: usa il calcolatore resto
+- Clicca **Aggiungi Pagamento**
+
+### Alla Romana
+- Inserisci quante persone totali al tavolo
+- Inserisci quante persone pagano ora
+- Il sistema calcola la quota
+- Clicca **Applica Calcolo**
+- Poi conferma con **Aggiungi Pagamento**
+
+### Per Consumazione
+- Seleziona i prodotti che la persona ha ordinato
+- Il sistema somma automaticamente
+- Clicca **Applica Selezione**
+- Poi conferma con **Aggiungi Pagamento**
+
+Ripeti per ogni persona. Quando il rimanente arriva a zero, il conto si chiude automaticamente.
+
+---
+
+## Come usare il calcolatore resto
+
+Appare automaticamente quando paghi in contanti.
+
+1. Nella sezione verde "Calcolatore Resto"
+2. Clicca sul taglio che il cliente ti da: 5, 10, 20, 50, 100
+3. Oppure scrivi l'importo esatto
+4. Leggi in grande il **RESTO DA DARE**
+
+Se il cliente non ti ha dato abbastanza, appare un avviso arancione.
+
+---
+
+## Come trasferire un tavolo
+
+Se i clienti vogliono spostarsi a un altro tavolo:
+
+1. Clicca sul tavolo rosso attuale
+2. Clicca **Trasferisci**
+3. Clicca sul nuovo tavolo (deve essere verde)
+4. Il conto si sposta, i clienti continuano a ordinare
+
+---
+
+## Come gestire le prenotazioni
+
+### Nuova prenotazione
+1. Vai su **Tavoli**
+2. Clicca **Nuova Prenotazione** in alto
+3. Scegli data e ora
+4. Inserisci nome cliente e telefono
+5. Inserisci numero ospiti
+6. Seleziona uno o piu tavoli (per gruppi grandi)
+7. Clicca **Crea Prenotazione**
+
+I tavoli prenotati diventano arancioni.
+
+### Modifica prenotazione
+1. Nella lista prenotazioni del giorno, clicca l'icona matita
+2. Modifica i dati
+3. Salva
+
+### Quando arriva il cliente prenotato
+1. Clicca sul tavolo arancione
+2. I dati della prenotazione sono gia inseriti
+3. Clicca **Apri Conto**
+
+---
+
+## Significato dei colori tavoli
+
+- **Verde** = Disponibile, puoi aprire un conto
+- **Rosso** = Occupato, clienti stanno mangiando
+- **Arancione** = Prenotato per dopo
+
+---
+
+## Se qualcosa va storto
+
+### Il cliente vuole annullare un prodotto gia ordinato
+Vai su Ordini, trova la comanda, cambia stato in "Annullato". Il prodotto non viene contato nel totale.
+
+### Ho sbagliato tavolo
+Usa **Trasferisci** per spostare il conto sul tavolo giusto.
+
+### Il cliente dice che il totale e sbagliato
+Il totale si aggiorna automaticamente. Se hai annullato ordini, controlla che siano in stato "Annullato".
+
+### L'app non risponde
+Ricarica la pagina (F5 o tasto ricarica del browser).
+
+---
+
+## Scorciatoie utili
+
+| Azione | Come fare |
+|--------|-----------|
+| Ordine veloce | Nuovo Ordine > Asporto > prodotti > Invia |
+| Apri tavolo | Tavoli > tavolo verde > Apri Conto |
+| Aggiungi comanda | Tavoli > tavolo rosso > Aggiungi Comanda |
+| Chiudi conto | Tavoli > tavolo rosso > Chiudi Conto |
+| Dividi conto | Tavoli > tavolo rosso > Dividi Conto |
+| Resto contanti | Nel pagamento, usa Calcolatore Resto |
+
+---
+
+## Contatti supporto
+
+Per problemi tecnici contattare l'amministratore del sistema.
+
+---
+
+*Versione 2.0 - Kebab Restaurant Management System*
