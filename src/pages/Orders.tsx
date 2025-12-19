@@ -87,12 +87,12 @@ export function Orders() {
 
   // Mappa degli items per ogni ordine (per vista cucina)
   const [allOrderItems, setAllOrderItems] = useState<Record<number, OrderItem[]>>({});
-  // Card espansa per ogni colonna Kanban (una sola per colonna)
-  const [expandedByColumn, setExpandedByColumn] = useState<Record<string, number | null>>({
-    pending: null,
-    preparing: null,
-    ready: null,
-    delivered: null,
+  // Card espanse per ogni colonna Kanban (multiple per colonna)
+  const [expandedByColumn, setExpandedByColumn] = useState<Record<string, Set<number>>>({
+    pending: new Set(),
+    preparing: new Set(),
+    ready: new Set(),
+    delivered: new Set(),
   });
 
   // Edit modal state (full - for history/admin)
@@ -1093,12 +1093,17 @@ export function Orders() {
                     </p>
                   ) : (
                     statusOrders.map((order) => {
-                      const isExpanded = expandedByColumn[status] === order.id;
+                      const isExpanded = expandedByColumn[status]?.has(order.id) || false;
                       const toggleExpand = () => {
-                        setExpandedByColumn(prev => ({
-                          ...prev,
-                          [status]: prev[status] === order.id ? null : order.id
-                        }));
+                        setExpandedByColumn(prev => {
+                          const newSet = new Set(prev[status] || []);
+                          if (newSet.has(order.id)) {
+                            newSet.delete(order.id);
+                          } else {
+                            newSet.add(order.id);
+                          }
+                          return { ...prev, [status]: newSet };
+                        });
                       };
 
                       return (

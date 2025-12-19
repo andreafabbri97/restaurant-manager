@@ -2385,8 +2385,7 @@ export async function addSessionPayment(
   };
 
   if (isSupabaseConfigured && supabase) {
-    // Prima prova con paid_items (se la colonna esiste)
-    let result = await supabase
+    const { data, error } = await supabase
       .from('session_payments')
       .insert({
         session_id: sessionId,
@@ -2399,25 +2398,8 @@ export async function addSessionPayment(
       .select()
       .single();
 
-    // Se fallisce per colonna mancante, riprova senza paid_items
-    if (result.error && result.error.code === 'PGRST204') {
-      console.warn('paid_items column not found, inserting without it');
-      result = await supabase
-        .from('session_payments')
-        .insert({
-          session_id: sessionId,
-          amount,
-          payment_method: paymentMethod,
-          notes,
-          smac_passed: smacPassed || false,
-        })
-        .select()
-        .single();
-    }
-
-    if (result.error) throw result.error;
-    // Aggiungi paid_items al risultato per coerenza
-    return { ...result.data, paid_items: paidItems || [] };
+    if (error) throw error;
+    return data;
   }
 
   const payments = getLocalData<SessionPayment[]>('session_payments', []);

@@ -26,6 +26,8 @@ import {
   Printer,
   FileText,
   ClipboardList,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import {
   getTables,
@@ -84,6 +86,8 @@ export function Tables() {
   const [selectedSession, setSelectedSession] = useState<TableSession | null>(null);
   const [sessionOrders, setSessionOrders] = useState<Order[]>([]);
   const [sessionPayments, setSessionPayments] = useState<SessionPayment[]>([]);
+  const [expandedSessionOrders, setExpandedSessionOrders] = useState<Set<number>>(new Set());
+  const [sessionOrderItems, setSessionOrderItems] = useState<Record<number, OrderItem[]>>({});
   const [remainingAmount, setRemainingAmount] = useState(0);
 
   // Split bill state
@@ -454,11 +458,33 @@ export function Tables() {
       setSessionOrders(orders);
       setSessionPayments(payments);
       setRemainingAmount(remaining);
+      // Reset expanded orders when opening session modal
+      setExpandedSessionOrders(new Set());
+      setSessionOrderItems({});
       setShowSessionModal(true);
     } catch (error) {
       console.error('Error loading session details:', error);
       showToast('Errore nel caricamento dettagli', 'error');
     }
+  }
+
+  async function toggleSessionOrderExpanded(orderId: number) {
+    const newExpanded = new Set(expandedSessionOrders);
+    if (newExpanded.has(orderId)) {
+      newExpanded.delete(orderId);
+    } else {
+      newExpanded.add(orderId);
+      // Load items if not already loaded
+      if (!sessionOrderItems[orderId]) {
+        try {
+          const items = await getOrderItems(orderId);
+          setSessionOrderItems(prev => ({ ...prev, [orderId]: items }));
+        } catch (error) {
+          console.error('Error loading order items:', error);
+        }
+      }
+    }
+    setExpandedSessionOrders(newExpanded);
   }
 
   async function handleOpenSession() {
@@ -1457,24 +1483,66 @@ export function Tables() {
               {sessionOrders.length === 0 ? (
                 <p className="text-dark-400 text-center py-4">Nessuna comanda ancora</p>
               ) : (
-                <div className="space-y-2 max-h-48 overflow-y-auto">
+                <div className="space-y-2 max-h-64 overflow-y-auto">
                   {sessionOrders.map((order) => (
-                    <div key={order.id} className="flex items-center justify-between p-3 bg-dark-900 rounded-lg">
-                      <div>
-                        <span className="font-medium text-white">Comanda #{order.order_number || 1}</span>
-                        <span className={`ml-2 badge ${
-                          order.status === 'pending' ? 'badge-warning' :
-                          order.status === 'preparing' ? 'badge-info' :
-                          order.status === 'ready' ? 'badge-success' :
-                          'badge-secondary'
-                        }`}>
-                          {order.status === 'pending' ? 'In attesa' :
-                           order.status === 'preparing' ? 'In preparazione' :
-                           order.status === 'ready' ? 'Pronto' :
-                           order.status === 'delivered' ? 'Consegnato' : order.status}
-                        </span>
+                    <div key={order.id} className="bg-dark-900 rounded-lg overflow-hidden">
+                      <div
+                        className="flex items-center justify-between p-3 cursor-pointer hover:bg-dark-800 transition-colors"
+                        onClick={() => toggleSessionOrderExpanded(order.id)}
+                      >
+                        <div className="flex items-center gap-2">
+                          {expandedSessionOrders.has(order.id) ? (
+                            <ChevronUp className="w-4 h-4 text-dark-400" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4 text-dark-400" />
+                          )}
+                          <div>
+                            <span className="font-medium text-white">Comanda #{order.order_number || 1}</span>
+                            <span className="text-dark-400 text-sm ml-2">(ID: {order.id})</span>
+                            <span className={`ml-2 badge ${
+                              order.status === 'pending' ? 'badge-warning' :
+                              order.status === 'preparing' ? 'badge-info' :
+                              order.status === 'ready' ? 'badge-success' :
+                              'badge-secondary'
+                            }`}>
+                              {order.status === 'pending' ? 'In attesa' :
+                               order.status === 'preparing' ? 'In preparazione' :
+                               order.status === 'ready' ? 'Pronto' :
+                               order.status === 'delivered' ? 'Consegnato' : order.status}
+                            </span>
+                          </div>
+                        </div>
+                        <span className="font-semibold text-white">€{order.total.toFixed(2)}</span>
                       </div>
-                      <span className="font-semibold text-white">€{order.total.toFixed(2)}</span>
+                      {/* Expanded items */}
+                      {expandedSessionOrders.has(order.id) && (
+                        <div className="px-3 pb-3 pt-1 border-t border-dark-700">
+                          {sessionOrderItems[order.id] ? (
+                            sessionOrderItems[order.id].length > 0 ? (
+                              <div className="space-y-1">
+                                {sessionOrderItems[order.id].map((item) => (
+                                  <div key={item.id} className="flex items-center justify-between text-sm py-1">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-primary-400 font-medium">{item.quantity}x</span>
+                                      <span className="text-dark-300">{item.menu_item_name || 'Prodotto'}</span>
+                                      {item.notes && (
+                                        <span className="text-dark-500 text-xs italic">({item.notes})</span>
+                                      )}
+                                    </div>
+                                    <span className="text-dark-400">€{(item.price * item.quantity).toFixed(2)}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-dark-500 text-sm text-center py-2">Nessun prodotto</p>
+                            )
+                          ) : (
+                            <div className="flex justify-center py-2">
+                              <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-primary-500"></div>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
