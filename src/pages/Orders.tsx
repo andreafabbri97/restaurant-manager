@@ -1253,7 +1253,142 @@ export function Orders() {
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
             </div>
           ) : (
-            <div className="card">
+            <>
+            {/* Mobile Cards View */}
+            <div className="sm:hidden space-y-2">
+              <div className="flex items-center justify-between px-1 mb-2">
+                <span className="text-sm font-medium text-white">
+                  {groupedHistoryOrders.length} ordini/conti
+                </span>
+                <button
+                  onClick={toggleSelectAll}
+                  className="text-xs text-primary-400"
+                >
+                  {filteredHistoryOrders.every(o => selectedOrderIds.includes(o.id)) ? 'Deseleziona' : 'Seleziona tutti'}
+                </button>
+              </div>
+              {groupedHistoryOrders.length === 0 ? (
+                <div className="card p-6 text-center text-dark-400">
+                  <p className="text-sm">Nessun ordine trovato</p>
+                </div>
+              ) : (
+                groupedHistoryOrders.map((entry) => {
+                  const isSession = entry.type === 'session' && entry.orders.length > 1;
+                  const firstOrder = entry.orders[0];
+                  const isExpanded = isSession && expandedSessions.has(entry.sessionId!);
+                  const allOrdersSelected = entry.orders.every(o => selectedOrderIds.includes(o.id));
+
+                  return (
+                    <div key={isSession ? `session-${entry.sessionId}` : `single-${firstOrder.id}`} className="card overflow-hidden">
+                      {/* Main row */}
+                      <div
+                        className={`p-3 ${isSession ? 'cursor-pointer' : ''} ${allOrdersSelected ? 'bg-primary-500/10' : ''}`}
+                        onClick={isSession ? () => toggleSessionExpand(entry.sessionId!) : undefined}
+                      >
+                        <div className="flex items-start gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (isSession) {
+                                if (allOrdersSelected) {
+                                  setSelectedOrderIds(prev => prev.filter(id => !entry.orders.some(o => o.id === id)));
+                                } else {
+                                  setSelectedOrderIds(prev => [...new Set([...prev, ...entry.orders.map(o => o.id)])]);
+                                }
+                              } else {
+                                toggleOrderSelection(firstOrder.id);
+                              }
+                            }}
+                            className="p-0.5 flex-shrink-0 mt-0.5"
+                          >
+                            {allOrdersSelected || selectedOrderIds.includes(firstOrder.id) ? (
+                              <CheckSquare className="w-4 h-4 text-primary-400" />
+                            ) : (
+                              <Square className="w-4 h-4 text-dark-500" />
+                            )}
+                          </button>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-2 min-w-0">
+                                {isSession && (
+                                  isExpanded ? <ChevronUp className="w-4 h-4 text-dark-400 flex-shrink-0" /> : <ChevronDown className="w-4 h-4 text-dark-400 flex-shrink-0" />
+                                )}
+                                <span className="font-medium text-white text-sm truncate">
+                                  {isSession ? `Conto - ${entry.tableName}` : `#${firstOrder.id}`}
+                                </span>
+                                {isSession && (
+                                  <span className="text-xs text-dark-400">({entry.orders.length}c)</span>
+                                )}
+                              </div>
+                              <span className="font-semibold text-primary-400 flex-shrink-0">€{entry.total.toFixed(2)}</span>
+                            </div>
+                            <div className="flex items-center justify-between mt-1">
+                              <div className="flex items-center gap-2 text-xs text-dark-400">
+                                <span>
+                                  {new Date(entry.date).toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })}
+                                </span>
+                                <span>•</span>
+                                <span>{orderTypeLabels[firstOrder.order_type]}</span>
+                                {entry.tableName && !isSession && <span>• {entry.tableName}</span>}
+                              </div>
+                              <span className={`text-xs px-1.5 py-0.5 rounded ${statusConfig[firstOrder.status]?.color || 'badge-secondary'}`}>
+                                {isSession ? (entry.sessionStatus === 'open' ? 'Aperto' : 'Chiuso') : statusConfig[firstOrder.status]?.label}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        {/* Action buttons */}
+                        <div className="flex items-center gap-1 mt-2 pt-2 border-t border-dark-700">
+                          <button onClick={(e) => { e.stopPropagation(); viewOrderDetails(firstOrder); }} className="btn-secondary btn-sm flex-1 justify-center text-xs">
+                            <Eye className="w-3.5 h-3.5" />
+                            Dettagli
+                          </button>
+                          {!isSession && (
+                            <>
+                              <button onClick={(e) => { e.stopPropagation(); openEditModal(firstOrder); }} className="btn-secondary btn-sm flex-1 justify-center text-xs">
+                                <Edit2 className="w-3.5 h-3.5" />
+                                Modifica
+                              </button>
+                              <button onClick={(e) => { e.stopPropagation(); handleDelete(firstOrder.id, firstOrder.session_id); }} className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg">
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      {/* Expanded session orders */}
+                      {isSession && isExpanded && (
+                        <div className="bg-dark-900/50 border-t border-dark-700">
+                          {entry.orders.map((order) => (
+                            <div key={order.id} className={`px-3 py-2 border-b border-dark-800 last:border-b-0 ${selectedOrderIds.includes(order.id) ? 'bg-primary-500/10' : ''}`}>
+                              <div className="flex items-center gap-2">
+                                <button onClick={() => toggleOrderSelection(order.id)} className="p-0.5">
+                                  {selectedOrderIds.includes(order.id) ? (
+                                    <CheckSquare className="w-3.5 h-3.5 text-primary-400" />
+                                  ) : (
+                                    <Square className="w-3.5 h-3.5 text-dark-500" />
+                                  )}
+                                </button>
+                                <span className="text-dark-500">└</span>
+                                <span className="font-mono text-dark-300 text-xs">#{order.id}</span>
+                                <span className="text-xs text-dark-500">C{order.order_number || 1}</span>
+                                <span className="ml-auto text-xs text-dark-300">€{order.total.toFixed(2)}</span>
+                                <span className={`${statusConfig[order.status]?.color || 'badge-secondary'} text-[10px]`}>
+                                  {statusConfig[order.status]?.label}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Desktop Table View */}
+            <div className="card hidden sm:block">
               <div className="card-header flex items-center justify-between">
                 <span className="font-semibold text-white">
                   {groupedHistoryOrders.length} {groupedHistoryOrders.length === 1 ? 'ordine/conto' : 'ordini/conti'} ({filteredHistoryOrders.length} comande)
@@ -1564,6 +1699,7 @@ export function Orders() {
                 </table>
               </div>
             </div>
+            </>
           )}
         </div>
       )}
