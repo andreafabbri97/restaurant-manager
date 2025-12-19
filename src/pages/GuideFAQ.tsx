@@ -20,13 +20,10 @@ import {
   ChefHat,
   ClipboardList,
   Wallet,
-  FileText,
   UserCog,
   Shield,
   Languages,
   Moon,
-  Sun,
-  Smartphone,
   Monitor,
   Wifi,
   Database
