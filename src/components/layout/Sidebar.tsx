@@ -297,9 +297,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </button>
 
           {!sidebarCollapsed && (
-            <div className="text-[10px] text-dark-500 text-center pt-1 hidden lg:block">
-              <div>v2.0</div>
-              <div className="mt-0.5">© 2024-2025 Andrea Fabbri</div>
+            <div className="text-[9px] text-dark-500 text-center hidden lg:block">
+              v2.0 · © 2025 Andrea Fabbri
             </div>
           )}
         </div>
