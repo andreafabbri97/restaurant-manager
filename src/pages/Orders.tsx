@@ -53,8 +53,13 @@ export function Orders() {
 
   // Mappa degli items per ogni ordine (per vista cucina)
   const [allOrderItems, setAllOrderItems] = useState<Record<number, OrderItem[]>>({});
-  // Card espanse nel Kanban (per vista cucina)
-  const [expandedOrders, setExpandedOrders] = useState<Set<number>>(new Set());
+  // Card espansa per ogni colonna Kanban (una sola per colonna)
+  const [expandedByColumn, setExpandedByColumn] = useState<Record<string, number | null>>({
+    pending: null,
+    preparing: null,
+    ready: null,
+    delivered: null,
+  });
 
   // Edit modal state
   const [showEditModal, setShowEditModal] = useState(false);
@@ -453,24 +458,19 @@ export function Orders() {
                   </div>
                   <span className={config.color}>{statusOrders.length}</span>
                 </div>
-                <div className="p-4 space-y-3 max-h-[60vh] overflow-y-auto">
+                <div className="p-4 space-y-2 max-h-[60vh] overflow-y-auto">
                   {statusOrders.length === 0 ? (
                     <p className="text-dark-500 text-center py-4 text-sm">
                       Nessun ordine
                     </p>
                   ) : (
                     statusOrders.map((order) => {
-                      const isExpanded = expandedOrders.has(order.id);
+                      const isExpanded = expandedByColumn[status] === order.id;
                       const toggleExpand = () => {
-                        setExpandedOrders(prev => {
-                          const next = new Set(prev);
-                          if (next.has(order.id)) {
-                            next.delete(order.id);
-                          } else {
-                            next.add(order.id);
-                          }
-                          return next;
-                        });
+                        setExpandedByColumn(prev => ({
+                          ...prev,
+                          [status]: prev[status] === order.id ? null : order.id
+                        }));
                       };
 
                       return (
@@ -481,58 +481,62 @@ export function Orders() {
                           {/* Header compatto - sempre visibile */}
                           <div
                             onClick={toggleExpand}
-                            className="p-3 cursor-pointer hover:bg-dark-800 transition-colors flex items-center justify-between gap-2"
+                            className="p-3 cursor-pointer hover:bg-dark-800 transition-colors"
                           >
-                            <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <div className="flex items-start justify-between gap-2">
                               {/* ID sempre visibile */}
                               <span className="text-xs font-mono bg-dark-700 px-2 py-1 rounded text-dark-300 flex-shrink-0">
                                 #{order.id}
                               </span>
-                              {/* Titolo ordine */}
-                              <span className="font-medium text-white truncate">
-                                {order.session_id
-                                  ? `${order.table_name} - Comanda #${order.order_number || 1}`
-                                  : order.table_name
-                                  ? `${orderTypeLabels[order.order_type]} - ${order.table_name}`
-                                  : `${orderTypeLabels[order.order_type]}`}
-                              </span>
+                              {/* Chevron e indicatore items */}
+                              <div className="flex items-center gap-2 flex-shrink-0">
+                                {allOrderItems[order.id] && (
+                                  <span className="text-xs text-dark-400">
+                                    {allOrderItems[order.id].length} item
+                                  </span>
+                                )}
+                                {isExpanded ? (
+                                  <ChevronUp className="w-4 h-4 text-dark-400" />
+                                ) : (
+                                  <ChevronDown className="w-4 h-4 text-dark-400" />
+                                )}
+                              </div>
                             </div>
-                            <div className="flex items-center gap-2 flex-shrink-0">
-                              {/* Indicatore items */}
-                              {allOrderItems[order.id] && (
-                                <span className="text-xs text-dark-400">
-                                  {allOrderItems[order.id].length} item
-                                </span>
-                              )}
-                              {/* Chevron */}
-                              {isExpanded ? (
-                                <ChevronUp className="w-4 h-4 text-dark-400" />
-                              ) : (
-                                <ChevronDown className="w-4 h-4 text-dark-400" />
-                              )}
-                            </div>
+                            {/* Titolo ordine - su riga separata, non troncato */}
+                            <p className="font-medium text-white text-sm mt-2 leading-tight">
+                              {order.session_id
+                                ? `${order.table_name} - Comanda #${order.order_number || 1}`
+                                : order.table_name
+                                ? `${orderTypeLabels[order.order_type]} - ${order.table_name}`
+                                : `${orderTypeLabels[order.order_type]}`}
+                            </p>
+                            {/* Cliente se presente */}
+                            {order.customer_name && (
+                              <p className="text-xs text-dark-400 mt-1">
+                                {order.customer_name}
+                              </p>
+                            )}
                           </div>
 
-                          {/* Contenuto espanso */}
-                          {isExpanded && (
+                          {/* Contenuto espanso con animazione */}
+                          <div
+                            className={`overflow-hidden transition-all duration-200 ease-in-out ${
+                              isExpanded ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
+                            }`}
+                          >
                             <div className="px-3 pb-3 space-y-3 border-t border-dark-700">
-                              {/* Info aggiuntive */}
+                              {/* Stato sessione + Totale */}
                               <div className="flex items-center justify-between pt-3">
-                                <div className="text-sm text-dark-400">
-                                  {order.customer_name && (
-                                    <span>{order.customer_name}</span>
-                                  )}
-                                  {order.session_id && (
-                                    <span className={`ml-2 text-xs ${
-                                      order.session_status === 'open'
-                                        ? 'text-primary-400/70'
-                                        : 'text-emerald-400/70'
-                                    }`}>
-                                      {order.session_status === 'open' ? 'Conto Aperto' : 'Conto Chiuso'}
-                                    </span>
-                                  )}
-                                </div>
-                                <p className="font-bold text-primary-400">
+                                {order.session_id && (
+                                  <span className={`text-xs ${
+                                    order.session_status === 'open'
+                                      ? 'text-primary-400/70'
+                                      : 'text-emerald-400/70'
+                                  }`}>
+                                    {order.session_status === 'open' ? 'Conto Aperto' : 'Conto Chiuso'}
+                                  </span>
+                                )}
+                                <p className="font-bold text-primary-400 ml-auto">
                                   €{order.total.toFixed(2)}
                                 </p>
                               </div>
@@ -568,7 +572,10 @@ export function Orders() {
                               {/* Pulsante azione */}
                               {config.next && (
                                 <button
-                                  onClick={() => handleStatusChange(order)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleStatusChange(order);
+                                  }}
                                   className="btn-success btn-sm w-full"
                                 >
                                   <CheckCircle className="w-4 h-4" />
@@ -580,7 +587,7 @@ export function Orders() {
                                 </button>
                               )}
                             </div>
-                          )}
+                          </div>
                         </div>
                       );
                     })
