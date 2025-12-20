@@ -19,6 +19,7 @@ import { CartContent } from '../components/order/CartContent';
 import { Modal } from '../components/ui/Modal';
 import { useLanguage } from '../context/LanguageContext';
 import { useCurrency } from '../hooks/useCurrency';
+import { useSmac } from '../context/SmacContext';
 import type { Category, MenuItem, Table, CartItem, Settings, TableSession, Order } from '../types';
 
 type OrderType = 'dine_in' | 'takeaway' | 'delivery';
@@ -27,6 +28,7 @@ type PaymentMethod = 'cash' | 'card' | 'online';
 export function NewOrder() {
   useLanguage(); // Ready for translations
   const { formatPrice } = useCurrency();
+  const { smacEnabled } = useSmac();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [categories, setCategories] = useState<Category[]>([]);
@@ -445,6 +447,7 @@ export function NewOrder() {
     setPaymentMethod,
     smacPassed,
     setSmacPassed,
+    smacEnabled,
     isSubmitting,
     clearCart,
     updateQuantity,

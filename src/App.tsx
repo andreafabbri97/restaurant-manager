@@ -18,6 +18,7 @@ import { NotificationProvider } from './context/NotificationContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { LicenseProvider, useLicense } from './context/LicenseContext';
+import { SmacProvider } from './context/SmacContext';
 import { PrivateRoute } from './components/auth/PrivateRoute';
 import { Layout } from './components/layout/Layout';
 import { ToastContainer } from './components/ui/Toast';
@@ -82,9 +83,10 @@ function App() {
         <LanguageProvider>
           <LicenseProvider>
             <LicenseGate>
-              <AuthProvider>
-                <NotificationProvider>
-                  <HashRouter>
+              <SmacProvider>
+                <AuthProvider>
+                  <NotificationProvider>
+                    <HashRouter>
         <Routes>
           {/* Route pubblica: Login */}
           <Route path="/login" element={<Login />} />
@@ -281,9 +283,10 @@ function App() {
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
                     <ToastContainer />
-                  </HashRouter>
-                </NotificationProvider>
-              </AuthProvider>
+                    </HashRouter>
+                  </NotificationProvider>
+                </AuthProvider>
+              </SmacProvider>
             </LicenseGate>
           </LicenseProvider>
         </LanguageProvider>

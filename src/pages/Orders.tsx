@@ -58,6 +58,7 @@ import {
 import { showToast } from '../components/ui/Toast';
 import { Modal } from '../components/ui/Modal';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { useSmac } from '../context/SmacContext';
 import type { Order, OrderItem, Table, SessionPayment, SessionPaymentItem, Receipt as ReceiptType } from '../types';
 
 const statusConfig = {
@@ -77,6 +78,7 @@ const orderTypeLabelKeys = {
 export function Orders() {
   const { t } = useLanguage();
   const { formatPrice } = useCurrency();
+  const { smacEnabled } = useSmac();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate] = useState(new Date().toISOString().split('T')[0]); // Sempre oggi per tab "Oggi"
@@ -772,7 +774,7 @@ export function Orders() {
             <span>€${selectedReceipt.total.toFixed(2)}</span>
           </div>
           <div>Pagamento: ${selectedReceipt.payment_method === 'cash' ? 'Contanti' : selectedReceipt.payment_method === 'card' ? 'Carta' : 'Online'}</div>
-          ${selectedReceipt.smac_passed ? '<div>SMAC: Sì</div>' : ''}
+          ${smacEnabled && selectedReceipt.smac_passed ? '<div>SMAC: Sì</div>' : ''}
           <div class="divider"></div>
           <div class="footer">Grazie e arrivederci!</div>
         </body>
@@ -1823,12 +1825,14 @@ export function Orders() {
                         : 'Online'}
                     </p>
                   </div>
-                  <div>
-                    <p className="text-sm text-dark-400">SMAC</p>
-                    <p className="font-medium text-white">
-                      {selectedOrder.smac_passed ? 'Sì' : 'No'}
-                    </p>
-                  </div>
+                  {smacEnabled && (
+                    <div>
+                      <p className="text-sm text-dark-400">SMAC</p>
+                      <p className="font-medium text-white">
+                        {selectedOrder.smac_passed ? 'Sì' : 'No'}
+                      </p>
+                    </div>
+                  )}
                 </>
               )}
             </div>
@@ -2095,18 +2099,20 @@ export function Orders() {
           </div>
 
           {/* SMAC */}
-          <div className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              id="smac_edit"
-              checked={editForm.smac_passed}
-              onChange={(e) => setEditForm({ ...editForm, smac_passed: e.target.checked })}
-              className="w-5 h-5 rounded border-dark-600 text-primary-500 focus:ring-primary-500"
-            />
-            <label htmlFor="smac_edit" className="text-white cursor-pointer">
-              SMAC Passata
-            </label>
-          </div>
+          {smacEnabled && (
+            <div className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                id="smac_edit"
+                checked={editForm.smac_passed}
+                onChange={(e) => setEditForm({ ...editForm, smac_passed: e.target.checked })}
+                className="w-5 h-5 rounded border-dark-600 text-primary-500 focus:ring-primary-500"
+              />
+              <label htmlFor="smac_edit" className="text-white cursor-pointer">
+                SMAC Passata
+              </label>
+            </div>
+          )}
 
           {/* Totale / Sconto */}
           <div className="bg-dark-900 rounded-xl p-4">
@@ -2367,16 +2373,18 @@ export function Orders() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    id="smac_payment"
-                    checked={paymentForm.smac}
-                    onChange={(e) => setPaymentForm({ ...paymentForm, smac: e.target.checked })}
-                    className="w-5 h-5 rounded border-dark-600 bg-dark-800 text-primary-500 focus:ring-primary-500"
-                  />
-                  <label htmlFor="smac_payment" className="text-white">SMAC passato</label>
-                </div>
+                {smacEnabled && (
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      id="smac_payment"
+                      checked={paymentForm.smac}
+                      onChange={(e) => setPaymentForm({ ...paymentForm, smac: e.target.checked })}
+                      className="w-5 h-5 rounded border-dark-600 bg-dark-800 text-primary-500 focus:ring-primary-500"
+                    />
+                    <label htmlFor="smac_payment" className="text-white">SMAC passato</label>
+                  </div>
+                )}
               </div>
 
               {/* Colonna destra: Calcolatore Resto (solo contanti) */}
@@ -2515,7 +2523,7 @@ export function Orders() {
                             {payment.notes && <span className="text-dark-400 text-xs">- {payment.notes}</span>}
                           </div>
                           <div className="flex items-center gap-1">
-                            {payment.smac_passed && (
+                            {smacEnabled && payment.smac_passed && (
                               <span className="text-[10px] bg-primary-500/20 text-primary-400 px-1.5 py-0.5 rounded-full">
                                 SMAC
                               </span>
@@ -2728,16 +2736,18 @@ export function Orders() {
                         <CreditCard className="w-4 h-4" /> Carta
                       </button>
                     </div>
-                    <div className="flex items-center gap-3 p-3 bg-primary-500/5 border border-primary-500/20 rounded-lg">
-                      <input
-                        type="checkbox"
-                        id="orders_split_smac"
-                        checked={splitPaymentForm.smac}
-                        onChange={(e) => setSplitPaymentForm({ ...splitPaymentForm, smac: e.target.checked })}
-                        className="w-5 h-5"
-                      />
-                      <label htmlFor="orders_split_smac" className="text-white">SMAC passato</label>
-                    </div>
+                    {smacEnabled && (
+                      <div className="flex items-center gap-3 p-3 bg-primary-500/5 border border-primary-500/20 rounded-lg">
+                        <input
+                          type="checkbox"
+                          id="orders_split_smac"
+                          checked={splitPaymentForm.smac}
+                          onChange={(e) => setSplitPaymentForm({ ...splitPaymentForm, smac: e.target.checked })}
+                          className="w-5 h-5"
+                        />
+                        <label htmlFor="orders_split_smac" className="text-white">SMAC passato</label>
+                      </div>
+                    )}
                     {splitPaymentForm.method === 'cash' && splitPaymentForm.amount && (
                       <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl space-y-3">
                         <div className="flex items-center gap-2">
@@ -2832,7 +2842,7 @@ export function Orders() {
                             </div>
                             <div className="flex items-center gap-2">
                               <span className="font-bold text-primary-400">{formatPrice(payment.amount)}</span>
-                              {payment.smac_passed && (
+                              {smacEnabled && payment.smac_passed && (
                                 <span className="text-[10px] bg-primary-500/20 text-primary-400 px-1.5 py-0.5 rounded-full">SMAC</span>
                               )}
                             </div>
@@ -2939,7 +2949,7 @@ export function Orders() {
               </div>
               <div className="text-xs mt-3">
                 <p>Pagamento: {selectedReceipt.payment_method === 'cash' ? 'Contanti' : selectedReceipt.payment_method === 'card' ? 'Carta' : 'Online'}</p>
-                {selectedReceipt.smac_passed && <p>SMAC: Sì</p>}
+                {smacEnabled && selectedReceipt.smac_passed && <p>SMAC: Sì</p>}
               </div>
               <div className="border-t border-dashed border-gray-400 my-3"></div>
               <div className="text-center text-xs">

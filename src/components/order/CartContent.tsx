@@ -44,6 +44,7 @@ interface CartContentProps {
   setPaymentMethod: (method: PaymentMethod) => void;
   smacPassed: boolean;
   setSmacPassed: (passed: boolean) => void;
+  smacEnabled?: boolean; // Se mostrare il toggle SMAC
   isSubmitting: boolean;
   clearCart: () => void;
   updateQuantity: (itemId: number, delta: number) => void;
@@ -82,6 +83,7 @@ export function CartContent({
   setPaymentMethod,
   smacPassed,
   setSmacPassed,
+  smacEnabled = true,
   isSubmitting,
   clearCart,
   updateQuantity,
@@ -354,17 +356,19 @@ export function CartContent({
                   <span className="text-xs font-medium">Online</span>
                 </button>
               </div>
-              <button
-                onClick={() => setSmacPassed(!smacPassed)}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl transition-all ${
-                  smacPassed
-                    ? 'bg-primary-500 text-dark-900'
-                    : 'bg-dark-700 text-dark-300 hover:bg-dark-600'
-                }`}
-              >
-                {smacPassed && <Check className="w-4 h-4" />}
-                <span className="text-xs font-medium">SMAC</span>
-              </button>
+              {smacEnabled && (
+                <button
+                  onClick={() => setSmacPassed(!smacPassed)}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl transition-all ${
+                    smacPassed
+                      ? 'bg-primary-500 text-dark-900'
+                      : 'bg-dark-700 text-dark-300 hover:bg-dark-600'
+                  }`}
+                >
+                  {smacPassed && <Check className="w-4 h-4" />}
+                  <span className="text-xs font-medium">SMAC</span>
+                </button>
+              )}
             </div>
           )}
 

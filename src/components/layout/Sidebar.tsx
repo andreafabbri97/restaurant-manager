@@ -36,6 +36,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useNotifications } from '../../context/NotificationContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { useSmac } from '../../context/SmacContext';
 import { ROLE_LABELS } from '../../types';
 import { isSupabaseConfigured } from '../../lib/supabase';
 import { getSettings } from '../../lib/database';
@@ -83,6 +84,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { isRealtimeConnected } = useNotifications();
   const { theme, toggleTheme, sidebarCollapsed, toggleSidebar } = useTheme();
   const { t } = useLanguage();
+  const { smacEnabled } = useSmac();
   const [shopName, setShopName] = useState('Il Mio Ristorante');
 
   // Carica il nome del ristorante dalle settings
@@ -110,8 +112,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     };
   }, []);
 
-  // Filtra navigazione in base ai permessi
-  const filteredNavigation = navigation.filter((item) => hasPermission(item.permission));
+  // Filtra navigazione in base ai permessi e impostazioni SMAC
+  const filteredNavigation = navigation.filter((item) => {
+    // Nascondi SMAC se disabilitato
+    if (item.href === '/smac' && !smacEnabled) return false;
+    return hasPermission(item.permission);
+  });
 
   function getRoleBadgeClass() {
     switch (user?.role) {

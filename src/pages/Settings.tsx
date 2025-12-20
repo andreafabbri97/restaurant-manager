@@ -10,16 +10,19 @@ import {
   AlertTriangle,
   Check,
   ExternalLink,
+  CreditCard,
 } from 'lucide-react';
 import { getSettings, updateSettings } from '../lib/database';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { showToast } from '../components/ui/Toast';
 import { Modal } from '../components/ui/Modal';
 import { useLanguage } from '../context/LanguageContext';
+import { useSmac } from '../context/SmacContext';
 import type { Settings as SettingsType } from '../types';
 
 export function Settings() {
   const { t, language, setLanguage } = useLanguage();
+  const { smacEnabled, setSmacEnabled } = useSmac();
   const [settings, setSettings] = useState<SettingsType | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -346,6 +349,39 @@ export function Settings() {
               <option value="it">{t('settings.italian')}</option>
               <option value="en">{t('settings.english')}</option>
             </select>
+          </div>
+        </div>
+      </div>
+
+      {/* SMAC Settings */}
+      <div className="card">
+        <div className="card-header flex items-center gap-2">
+          <CreditCard className="w-4 h-4 sm:w-5 sm:h-5" />
+          <h2 className="font-semibold text-white text-sm sm:text-base">{t('settings.smacSection')}</h2>
+        </div>
+        <div className="card-body space-y-3 sm:space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-white text-sm sm:text-base">{t('settings.smacEnabled')}</p>
+              <p className="text-xs sm:text-sm text-dark-400">{t('settings.smacEnabledDesc')}</p>
+            </div>
+            <button
+              onClick={() => setSmacEnabled(!smacEnabled)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                smacEnabled ? 'bg-primary-500' : 'bg-dark-600'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  smacEnabled ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+          <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-3 sm:p-4">
+            <p className="text-xs sm:text-sm text-blue-400">
+              <strong>{t('settings.smacNote')}:</strong> {t('settings.smacNoteDesc')}
+            </p>
           </div>
         </div>
       </div>

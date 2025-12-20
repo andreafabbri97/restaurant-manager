@@ -469,7 +469,12 @@
     "version": "Versione",
     "frontend": "Frontend",
     "databaseType": "Database",
-    "languageType": "Linguaggio"
+    "languageType": "Linguaggio",
+    "smacSection": "Funzionalità SMAC",
+    "smacEnabled": "Abilita campi SMAC",
+    "smacEnabledDesc": "Mostra l'opzione SMAC Card negli ordini e nei pagamenti",
+    "smacNote": "Nota",
+    "smacNoteDesc": "La SMAC Card è un sistema di pagamento specifico di San Marino. Se il tuo ristorante non opera a San Marino, disattiva questa opzione per nascondere tutti i riferimenti SMAC nel programma."
   },
   "users": {
     "title": "Utenti",

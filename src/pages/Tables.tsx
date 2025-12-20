@@ -54,10 +54,12 @@ import {
 import { showToast } from '../components/ui/Toast';
 import { Modal } from '../components/ui/Modal';
 import { useLanguage } from '../context/LanguageContext';
+import { useSmac } from '../context/SmacContext';
 import type { Table, Reservation, TableSession, Order, SessionPayment, SessionPaymentItem, OrderItem, Receipt as ReceiptType } from '../types';
 
 export function Tables() {
   useLanguage(); // Ready for translations
+  const { smacEnabled } = useSmac();
   const navigate = useNavigate();
   const [tables, setTables] = useState<Table[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
@@ -840,7 +842,7 @@ export function Tables() {
             <span>€${selectedReceipt.total.toFixed(2)}</span>
           </div>
           <div>Pagamento: ${selectedReceipt.payment_method === 'cash' ? 'Contanti' : selectedReceipt.payment_method === 'card' ? 'Carta' : 'Online'}</div>
-          ${selectedReceipt.smac_passed ? '<div>SMAC: Sì</div>' : ''}
+          ${smacEnabled && selectedReceipt.smac_passed ? '<div>SMAC: Sì</div>' : ''}
           <div class="divider"></div>
           <div class="footer">Grazie e arrivederci!</div>
         </body>
@@ -1634,16 +1636,18 @@ export function Tables() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  id="smac"
-                  checked={paymentForm.smac}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, smac: e.target.checked })}
-                  className="w-5 h-5 rounded border-dark-600 bg-dark-800 text-primary-500 focus:ring-primary-500"
-                />
-                <label htmlFor="smac" className="text-white">SMAC passato</label>
-              </div>
+              {smacEnabled && (
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="smac"
+                    checked={paymentForm.smac}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, smac: e.target.checked })}
+                    className="w-5 h-5 rounded border-dark-600 bg-dark-800 text-primary-500 focus:ring-primary-500"
+                  />
+                  <label htmlFor="smac" className="text-white">SMAC passato</label>
+                </div>
+              )}
 
               {/* Pulsanti azione - mostrati qui solo se non contanti */}
               {paymentForm.method !== 'cash' && (
@@ -1820,7 +1824,7 @@ export function Tables() {
                           <span className="text-white">€{payment.amount.toFixed(2)}</span>
                           {payment.notes && <span className="text-dark-400 text-sm">- {payment.notes}</span>}
                         </div>
-                        {payment.smac_passed && (
+                        {smacEnabled && payment.smac_passed && (
                           <span className="text-xs bg-primary-500/20 text-primary-400 px-2 py-0.5 rounded-full">
                             SMAC
                           </span>
@@ -2142,19 +2146,21 @@ export function Tables() {
                     </div>
 
                     {/* Checkbox SMAC per questo pagamento */}
-                    <div className="flex items-center gap-3 p-3 bg-primary-500/5 border border-primary-500/20 rounded-lg">
-                      <input
-                        type="checkbox"
-                        id="split_smac"
-                        checked={splitPaymentForm.smac}
-                        onChange={(e) => setSplitPaymentForm({ ...splitPaymentForm, smac: e.target.checked })}
-                        className="w-5 h-5 rounded border-dark-600 bg-dark-800 text-primary-500 focus:ring-primary-500"
-                      />
-                      <label htmlFor="split_smac" className="text-white cursor-pointer flex-1">
-                        <span className="font-medium">SMAC passato</span>
-                        <p className="text-xs text-dark-400">Spunta se questo pagamento è già stato dichiarato con tessera SMAC</p>
-                      </label>
-                    </div>
+                    {smacEnabled && (
+                      <div className="flex items-center gap-3 p-3 bg-primary-500/5 border border-primary-500/20 rounded-lg">
+                        <input
+                          type="checkbox"
+                          id="split_smac"
+                          checked={splitPaymentForm.smac}
+                          onChange={(e) => setSplitPaymentForm({ ...splitPaymentForm, smac: e.target.checked })}
+                          className="w-5 h-5 rounded border-dark-600 bg-dark-800 text-primary-500 focus:ring-primary-500"
+                        />
+                        <label htmlFor="split_smac" className="text-white cursor-pointer flex-1">
+                          <span className="font-medium">SMAC passato</span>
+                          <p className="text-xs text-dark-400">Spunta se questo pagamento è già stato dichiarato con tessera SMAC</p>
+                        </label>
+                      </div>
+                    )}
 
                     {/* Calcolatore Resto - solo per contanti */}
                     {splitPaymentForm.method === 'cash' && splitPaymentForm.amount && parseFloat(splitPaymentForm.amount) > 0 && (
@@ -2287,7 +2293,7 @@ export function Tables() {
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-lg font-bold text-primary-400">€{payment.amount.toFixed(2)}</span>
-                          {payment.smac_passed && (
+                          {smacEnabled && payment.smac_passed && (
                             <span className="text-xs bg-primary-500/20 text-primary-400 px-2 py-0.5 rounded-full">
                               SMAC
                             </span>
@@ -2412,7 +2418,7 @@ export function Tables() {
 
               <div className="text-xs mt-3">
                 <p>Pagamento: {selectedReceipt.payment_method === 'cash' ? 'Contanti' : selectedReceipt.payment_method === 'card' ? 'Carta' : 'Online'}</p>
-                {selectedReceipt.smac_passed && <p>SMAC: Sì</p>}
+                {smacEnabled && selectedReceipt.smac_passed && <p>SMAC: Sì</p>}
               </div>
 
               <div className="border-t border-dashed border-gray-400 my-3"></div>

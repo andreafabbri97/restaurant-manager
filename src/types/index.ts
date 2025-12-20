@@ -228,6 +228,7 @@ export interface Settings {
   address?: string;
   phone?: string;
   email?: string;
+  smac_enabled: boolean; // true = mostra campi SMAC (solo San Marino), false = nascondi
 }
 
 // UI Types

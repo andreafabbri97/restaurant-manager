@@ -1124,6 +1124,7 @@ export async function getSettings(): Promise<Settings> {
         iva_included: true, // Default: IVA inclusa nei prezzi
         default_threshold: 10,
         language: 'it',
+        smac_enabled: true, // Default: SMAC abilitato
       };
     }
     return {
@@ -1137,6 +1138,7 @@ export async function getSettings(): Promise<Settings> {
       address: data?.address,
       phone: data?.phone,
       email: data?.email,
+      smac_enabled: data?.smac_enabled ?? true, // Default: SMAC abilitato
     };
   }
   // Carica settings da localStorage e unisce con i default per garantire che tutti i campi esistano
@@ -1148,6 +1150,7 @@ export async function getSettings(): Promise<Settings> {
     iva_included: true, // Default: IVA inclusa nei prezzi
     default_threshold: 10,
     language: 'it',
+    smac_enabled: true, // Default: SMAC abilitato
   };
   const saved = getLocalData<Partial<Settings>>('settings', {});
   return { ...defaults, ...saved };

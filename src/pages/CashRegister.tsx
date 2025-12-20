@@ -25,10 +25,12 @@ import {
 import { showToast } from '../components/ui/Toast';
 import { Modal } from '../components/ui/Modal';
 import { useLanguage } from '../context/LanguageContext';
+import { useSmac } from '../context/SmacContext';
 import type { CashClosure, Order, Receipt as ReceiptType } from '../types';
 
 export function CashRegister() {
   useLanguage(); // Ready for translations
+  const { smacEnabled } = useSmac();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState<{
@@ -291,27 +293,29 @@ export function CashRegister() {
       </div>
 
       {/* SMAC Summary */}
-      <div className="grid grid-cols-2 gap-3 sm:gap-4">
-        <div className="card p-3 sm:p-4">
-          <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
-            <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />
-            <h3 className="font-semibold text-white text-sm sm:text-base">SMAC Passata</h3>
+      {smacEnabled && (
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
+          <div className="card p-3 sm:p-4">
+            <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+              <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />
+              <h3 className="font-semibold text-white text-sm sm:text-base">SMAC Passata</h3>
+            </div>
+            <p className="text-xl sm:text-2xl font-bold text-emerald-400">
+              €{summary?.smac_total.toFixed(2)}
+            </p>
           </div>
-          <p className="text-xl sm:text-2xl font-bold text-emerald-400">
-            €{summary?.smac_total.toFixed(2)}
-          </p>
-        </div>
 
-        <div className="card p-3 sm:p-4">
-          <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
-            <XCircle className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" />
-            <h3 className="font-semibold text-white text-sm sm:text-base">SMAC Non Passata</h3>
+          <div className="card p-3 sm:p-4">
+            <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+              <XCircle className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" />
+              <h3 className="font-semibold text-white text-sm sm:text-base">SMAC Non Passata</h3>
+            </div>
+            <p className="text-xl sm:text-2xl font-bold text-amber-400">
+              €{summary?.non_smac_total.toFixed(2)}
+            </p>
           </div>
-          <p className="text-xl sm:text-2xl font-bold text-amber-400">
-            €{summary?.non_smac_total.toFixed(2)}
-          </p>
         </div>
-      </div>
+      )}
 
       {/* Orders by Type */}
       <div className="card">
@@ -389,7 +393,7 @@ export function CashRegister() {
                         </p>
                         <p className="text-xs sm:text-sm text-dark-400 truncate">
                           {firstOrder.payment_method === 'cash' ? 'Contanti' : firstOrder.payment_method === 'card' ? 'Carta' : 'Online'}
-                          {firstOrder.smac_passed && ' • SMAC'}
+                          {smacEnabled && firstOrder.smac_passed && ' • SMAC'}
                           {isSession && (
                             <span className={`ml-1 sm:ml-2 ${firstOrder.session_status === 'open' ? 'text-amber-400' : 'text-emerald-400'}`}>
                               • {firstOrder.session_status === 'open' ? 'Aperto' : 'Chiuso'}
@@ -638,7 +642,7 @@ export function CashRegister() {
 
               <div className="text-xs text-center">
                 <p>Pagamento: {selectedReceipt.payment_method === 'cash' ? 'Contanti' : selectedReceipt.payment_method === 'card' ? 'Carta' : 'Online'}</p>
-                {selectedReceipt.smac_passed && <p className="font-bold">SMAC REGISTRATA</p>}
+                {smacEnabled && selectedReceipt.smac_passed && <p className="font-bold">SMAC REGISTRATA</p>}
               </div>
 
               <div className="border-t border-dashed border-gray-400 my-3"></div>

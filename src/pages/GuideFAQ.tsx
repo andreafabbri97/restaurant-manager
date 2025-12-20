@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useSmac } from '../context/SmacContext';
 
 interface FAQItem {
   question: string;
@@ -47,6 +48,7 @@ interface GuideSection {
 export function GuideFAQ() {
   useLanguage(); // Ready for translations
   const { isSuperAdmin, isAdmin } = useAuth();
+  const { smacEnabled } = useSmac();
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState<'welcome' | 'guide' | 'faq'>('welcome');
@@ -679,6 +681,15 @@ export function GuideFAQ() {
     faqs = [...staffFAQs, ...adminFAQs, ...superadminFAQs];
   }
 
+  // Filtra sezioni SMAC se disabilitato
+  if (!smacEnabled) {
+    guideSections = guideSections.filter(section => !section.title.toLowerCase().includes('smac'));
+    faqs = faqs.filter(faq =>
+      !faq.question.toLowerCase().includes('smac') &&
+      !faq.answer.toLowerCase().includes('smac')
+    );
+  }
+
   // Filtra FAQ per ricerca
   const filteredFAQs = faqs.filter(
     (faq) =>
@@ -1009,7 +1020,7 @@ export function GuideFAQ() {
             )}
 
             {/* SMAC */}
-            {isSuperAdmin() && (
+            {smacEnabled && isSuperAdmin() && (
               <div className="card">
                 <div className="card-header flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-indigo-500/20">
