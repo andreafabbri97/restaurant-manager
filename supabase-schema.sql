@@ -1,5 +1,5 @@
 -- ============================================
--- KEBAB RESTAURANT - SCHEMA DATABASE SUPABASE
+-- RESTAURANT MANAGER - SCHEMA DATABASE SUPABASE
 -- ============================================
 -- Esegui questo script nel SQL Editor di Supabase
 -- Dashboard > SQL Editor > New query > Incolla e Run

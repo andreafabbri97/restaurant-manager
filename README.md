@@ -1,4 +1,4 @@
-# Kebab Restaurant - Guida Operativa
+# Restaurant Manager - Guida Operativa
 
 Questo manuale spiega come usare l'app per gestire il ristorante. Scritto per chi lavora in sala, non servono competenze tecniche.
 
@@ -396,4 +396,4 @@ Per problemi tecnici contattare l'amministratore del sistema.
 
 ---
 
-*Versione 2.4 - Kebab Restaurant Management System*
+*Versione 2.5 - Restaurant Manager System*

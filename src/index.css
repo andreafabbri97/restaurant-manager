@@ -1,5 +1,5 @@
 /**
- * KEBAB RESTAURANT MANAGEMENT SYSTEM
+ * RESTAURANT MANAGER SYSTEM
  * Copyright (c) 2024-2025 Andrea Fabbri. Tutti i diritti riservati.
  * Licenza: Proprietaria - Vedere file LICENSE
  */

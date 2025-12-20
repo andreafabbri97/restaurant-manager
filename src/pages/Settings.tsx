@@ -90,7 +90,7 @@ export function Settings() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `kebab_backup_${new Date().toISOString().split('T')[0]}.json`;
+      a.download = `restaurant_backup_${new Date().toISOString().split('T')[0]}.json`;
       a.click();
       URL.revokeObjectURL(url);
 
@@ -103,7 +103,7 @@ export function Settings() {
 
   function openSchemaFile() {
     // Apri il link al file schema su GitHub
-    window.open('https://github.com/Raf-Dee/kebab-restaurant-app/blob/main/supabase-schema.sql', '_blank');
+    window.open('https://github.com/andreafabbri97/restaurant-manager/blob/main/supabase-schema.sql', '_blank');
   }
 
   if (loading) {
