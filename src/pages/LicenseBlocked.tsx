@@ -1,49 +1,36 @@
 /**
  * Pagina mostrata quando la licenza non è valida
+ * Usa le impostazioni personalizzate dal License Manager
  */
 
 import { ShieldX, Phone, Mail, RefreshCw } from 'lucide-react';
 import { useLicense } from '../context/LicenseContext';
 
 export function LicenseBlocked() {
-  const { licenseStatus, recheckLicense, isChecking } = useLicense();
+  const { licenseStatus, adminSettings, recheckLicense, isChecking } = useLicense();
 
-  const getBlockMessage = () => {
-    switch (licenseStatus?.reason) {
-      case 'expired':
-        return {
-          title: 'Licenza Scaduta',
-          subtitle: `La tua licenza è scaduta il ${licenseStatus.expiryDate}`,
-          description: 'Contatta Andrea Fabbri per rinnovare la licenza e continuare ad utilizzare il software.',
-        };
-      case 'suspended':
-        return {
-          title: 'Licenza Sospesa',
-          subtitle: 'Il tuo account è stato temporaneamente sospeso',
-          description: 'Potrebbe esserci un problema con il pagamento. Contatta Andrea Fabbri per maggiori informazioni.',
-        };
-      case 'cancelled':
-        return {
-          title: 'Licenza Cancellata',
-          subtitle: 'Il contratto è stato terminato',
-          description: 'Se ritieni ci sia un errore, contatta Andrea Fabbri.',
-        };
-      case 'not_found':
-        return {
-          title: 'Licenza Non Trovata',
-          subtitle: 'Questa installazione non è registrata',
-          description: 'Il software deve essere attivato. Contatta Andrea Fabbri per completare la configurazione.',
-        };
-      default:
-        return {
-          title: 'Licenza Non Valida',
-          subtitle: licenseStatus?.message || 'Si è verificato un problema con la licenza',
-          description: 'Contatta Andrea Fabbri per assistenza.',
-        };
-    }
+  // Usa le impostazioni admin se disponibili, altrimenti fallback
+  const settings = adminSettings || {
+    blocked_title: 'Licenza Non Valida',
+    blocked_message: 'Contatta il supporto per assistenza.',
+    blocked_contact_email: 'support@example.com',
+    blocked_contact_phone: '+39 333 1234567',
   };
 
-  const message = getBlockMessage();
+  const getSubtitle = () => {
+    switch (licenseStatus?.reason) {
+      case 'expired':
+        return `La tua licenza è scaduta${licenseStatus.expiryDate ? ` il ${licenseStatus.expiryDate}` : ''}`;
+      case 'suspended':
+        return 'Il tuo account è stato temporaneamente sospeso';
+      case 'cancelled':
+        return 'Il contratto è stato terminato';
+      case 'not_found':
+        return 'Questa installazione non è registrata';
+      default:
+        return licenseStatus?.message || 'Si è verificato un problema con la licenza';
+    }
+  };
 
   return (
     <div className="min-h-screen bg-dark-900 flex items-center justify-center p-4">
@@ -53,29 +40,33 @@ export function LicenseBlocked() {
           <ShieldX className="w-10 h-10 text-red-500" />
         </div>
 
-        {/* Title */}
-        <h1 className="text-2xl font-bold text-white mb-2">{message.title}</h1>
-        <p className="text-red-400 mb-4">{message.subtitle}</p>
-        <p className="text-dark-300 mb-8">{message.description}</p>
+        {/* Title - dal License Manager */}
+        <h1 className="text-2xl font-bold text-white mb-2">{settings.blocked_title}</h1>
+        <p className="text-red-400 mb-4">{getSubtitle()}</p>
+        <p className="text-dark-300 mb-8">{settings.blocked_message}</p>
 
-        {/* Contact Info */}
+        {/* Contact Info - dal License Manager */}
         <div className="bg-dark-700 rounded-lg p-4 mb-6">
           <p className="text-sm text-dark-400 mb-3">Contatta il supporto:</p>
           <div className="space-y-2">
-            <a
-              href="tel:+393331234567"
-              className="flex items-center justify-center gap-2 text-primary-400 hover:text-primary-300"
-            >
-              <Phone className="w-4 h-4" />
-              <span>+39 333 123 4567</span>
-            </a>
-            <a
-              href="mailto:andrea.fabbri@example.com"
-              className="flex items-center justify-center gap-2 text-primary-400 hover:text-primary-300"
-            >
-              <Mail className="w-4 h-4" />
-              <span>andrea.fabbri@example.com</span>
-            </a>
+            {settings.blocked_contact_phone && (
+              <a
+                href={`tel:${settings.blocked_contact_phone.replace(/\s/g, '')}`}
+                className="flex items-center justify-center gap-2 text-primary-400 hover:text-primary-300"
+              >
+                <Phone className="w-4 h-4" />
+                <span>{settings.blocked_contact_phone}</span>
+              </a>
+            )}
+            {settings.blocked_contact_email && (
+              <a
+                href={`mailto:${settings.blocked_contact_email}`}
+                className="flex items-center justify-center gap-2 text-primary-400 hover:text-primary-300"
+              >
+                <Mail className="w-4 h-4" />
+                <span>{settings.blocked_contact_email}</span>
+              </a>
+            )}
           </div>
         </div>
 

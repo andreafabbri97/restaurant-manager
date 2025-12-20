@@ -22,18 +22,62 @@ interface LicenseStatus {
   expiryDate?: string;
 }
 
+interface AdminSettings {
+  blocked_title: string;
+  blocked_message: string;
+  blocked_contact_email: string;
+  blocked_contact_phone: string;
+}
+
 interface LicenseContextType {
   isLicenseValid: boolean;
   licenseStatus: LicenseStatus | null;
+  adminSettings: AdminSettings | null;
   isChecking: boolean;
   recheckLicense: () => Promise<void>;
 }
 
 const LicenseContext = createContext<LicenseContextType | null>(null);
 
+// Impostazioni di default se non si riesce a caricarle
+const DEFAULT_ADMIN_SETTINGS: AdminSettings = {
+  blocked_title: 'Licenza Non Valida',
+  blocked_message: 'La tua licenza è scaduta o è stata sospesa. Per continuare ad utilizzare il software, contatta il supporto.',
+  blocked_contact_email: 'support@example.com',
+  blocked_contact_phone: '+39 333 1234567',
+};
+
 export function LicenseProvider({ children }: { children: ReactNode }) {
   const [licenseStatus, setLicenseStatus] = useState<LicenseStatus | null>(null);
+  const [adminSettings, setAdminSettings] = useState<AdminSettings | null>(null);
   const [isChecking, setIsChecking] = useState(true);
+
+  // Carica le impostazioni admin dal server licenze
+  const fetchAdminSettings = async () => {
+    try {
+      const response = await fetch(`${LICENSE_SERVER_URL}/rest/v1/admin_settings?select=*&limit=1`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': LICENSE_SERVER_KEY,
+          'Authorization': `Bearer ${LICENSE_SERVER_KEY}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.length > 0) {
+          setAdminSettings(data[0]);
+          return;
+        }
+      }
+      // Fallback ai default
+      setAdminSettings(DEFAULT_ADMIN_SETTINGS);
+    } catch (error) {
+      console.warn('Failed to fetch admin settings:', error);
+      setAdminSettings(DEFAULT_ADMIN_SETTINGS);
+    }
+  };
 
   const checkLicense = async () => {
     setIsChecking(true);
@@ -58,6 +102,11 @@ export function LicenseProvider({ children }: { children: ReactNode }) {
 
       const result = await response.json();
       setLicenseStatus(result);
+
+      // Se la licenza non è valida, carica le impostazioni admin
+      if (!result.valid) {
+        await fetchAdminSettings();
+      }
     } catch (error) {
       // In caso di errore di rete, permetti l'uso temporaneo
       console.warn('License check failed, using grace period:', error);
@@ -81,6 +130,7 @@ export function LicenseProvider({ children }: { children: ReactNode }) {
     <LicenseContext.Provider value={{
       isLicenseValid,
       licenseStatus,
+      adminSettings,
       isChecking,
       recheckLicense: checkLicense
     }}>
