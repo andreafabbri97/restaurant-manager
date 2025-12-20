@@ -910,7 +910,7 @@ export function Tables() {
       </div>
 
       {/* Tables Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-2 sm:gap-4">
         {tables.map((table) => {
           const status = getTableStatus(table.id);
           const session = getTableSession(table.id);
@@ -1139,10 +1139,11 @@ export function Tables() {
           setEditingReservation(null);
         }}
         title={editingReservation ? 'Modifica Prenotazione' : 'Nuova Prenotazione'}
-        size="md"
+        size="xl"
       >
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          {/* Desktop: Data, Ora, Nome Cliente, Telefono, Ospiti su 2 righe */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
               <label className="label">Data</label>
               <input
@@ -1161,20 +1162,6 @@ export function Tables() {
                 className="input"
               />
             </div>
-          </div>
-
-          <div>
-            <label className="label">Nome Cliente *</label>
-            <input
-              type="text"
-              value={reservationForm.customer_name}
-              onChange={(e) => setReservationForm({ ...reservationForm, customer_name: e.target.value })}
-              className="input"
-              placeholder="Nome e cognome"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="label">Telefono</label>
               <input
@@ -1197,6 +1184,17 @@ export function Tables() {
             </div>
           </div>
 
+          <div>
+            <label className="label">Nome Cliente *</label>
+            <input
+              type="text"
+              value={reservationForm.customer_name}
+              onChange={(e) => setReservationForm({ ...reservationForm, customer_name: e.target.value })}
+              className="input"
+              placeholder="Nome e cognome"
+            />
+          </div>
+
           {/* Selezione tavoli - Multi-tavolo */}
           <div>
             <div className="flex items-center justify-between mb-2">
@@ -1208,7 +1206,7 @@ export function Tables() {
                 Capacità totale: <span className="text-primary-400 font-semibold">{getSelectedTablesCapacity()}</span> posti
               </span>
             </div>
-            <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-2 bg-dark-900 rounded-xl">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-32 overflow-y-auto p-2 bg-dark-900 rounded-xl">
               {tables.map((table) => {
                 const isSelected = reservationForm.table_ids.includes(table.id);
                 const tableStatus = getTableStatus(table.id);
@@ -1252,12 +1250,12 @@ export function Tables() {
             <textarea
               value={reservationForm.notes}
               onChange={(e) => setReservationForm({ ...reservationForm, notes: e.target.value })}
-              className="input resize-none h-20"
+              className="input resize-none h-16"
               placeholder="Note aggiuntive..."
             />
           </div>
 
-          <div className="flex items-center gap-3 pt-4">
+          <div className="flex items-center gap-3 pt-2">
             <button
               onClick={editingReservation ? handleUpdateReservation : handleSaveReservation}
               className="btn-primary flex-1"
@@ -1478,14 +1476,14 @@ export function Tables() {
             )}
 
             {/* Desktop: 2 colonne - Comande a sinistra, Azioni a destra */}
-            <div className="lg:grid lg:grid-cols-5 lg:gap-4">
+            <div className="md:grid md:grid-cols-5 md:gap-4">
               {/* Colonna sinistra: Orders List (3/5) */}
-              <div className="lg:col-span-3">
+              <div className="md:col-span-3">
                 <h3 className="font-semibold text-white mb-2 text-sm">Comande</h3>
                 {sessionOrders.length === 0 ? (
                   <p className="text-dark-400 text-center py-4 bg-dark-900 rounded-lg text-sm">Nessuna comanda ancora</p>
                 ) : (
-                  <div className="space-y-2 max-h-48 lg:max-h-64 overflow-y-auto">
+                  <div className="space-y-2 max-h-48 md:max-h-64 overflow-y-auto">
                     {sessionOrders.map((order) => (
                       <div key={order.id} className="bg-dark-900 rounded-lg overflow-hidden">
                         <div
@@ -1548,7 +1546,7 @@ export function Tables() {
               </div>
 
               {/* Colonna destra: Actions (2/5) */}
-              <div className="lg:col-span-2 mt-4 lg:mt-0">
+              <div className="md:col-span-2 mt-4 md:mt-0">
                 <h3 className="font-semibold text-white mb-2 text-sm lg:block hidden">Azioni</h3>
                 <div className="grid grid-cols-2 gap-2">
                   <button onClick={handleAddOrder} className="btn-primary flex items-center justify-center gap-1.5 text-sm py-2">
@@ -1589,7 +1587,7 @@ export function Tables() {
         size={paymentForm.method === 'cash' ? '2xl' : 'sm'}
       >
         {selectedSession && (
-          <div className={paymentForm.method === 'cash' ? 'lg:grid lg:grid-cols-2 lg:gap-6' : ''}>
+          <div className={paymentForm.method === 'cash' ? 'md:grid md:grid-cols-2 md:gap-6' : ''}>
             {/* Colonna sinistra: Info pagamento */}
             <div className="space-y-6">
               <div className="text-center p-4 bg-dark-900 rounded-xl">
@@ -1662,7 +1660,7 @@ export function Tables() {
 
             {/* Colonna destra: Calcolatore Resto - solo per contanti */}
             {paymentForm.method === 'cash' && selectedSession.total > 0 && (
-              <div className="mt-6 lg:mt-0 space-y-4">
+              <div className="mt-6 md:mt-0 space-y-4">
                 <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl space-y-3">
                   <div className="flex items-center gap-2">
                     <Calculator className="w-4 h-4 text-emerald-400" />
@@ -1777,9 +1775,9 @@ export function Tables() {
         size="3xl"
       >
         {selectedSession && (
-          <div className="lg:grid lg:grid-cols-5 lg:gap-6">
+          <div className="md:grid md:grid-cols-5 md:gap-6">
             {/* Colonna sinistra: Summary e Pagamenti */}
-            <div className="lg:col-span-2 space-y-4">
+            <div className="md:col-span-2 space-y-4">
               {/* Summary */}
               <div className="grid grid-cols-3 gap-2 p-3 bg-dark-900 rounded-xl">
                 <div className="text-center">
@@ -1812,7 +1810,7 @@ export function Tables() {
               {sessionPayments.length > 0 && (
                 <div>
                   <h4 className="text-sm font-medium text-dark-400 mb-2">Pagamenti effettuati</h4>
-                  <div className="space-y-2 max-h-48 lg:max-h-64 overflow-y-auto">
+                  <div className="space-y-2 max-h-48 md:max-h-64 overflow-y-auto">
                     {sessionPayments.map((payment) => (
                       <div key={payment.id} className="flex items-center justify-between p-2 bg-dark-900 rounded-lg">
                         <div className="flex items-center gap-2">
@@ -1835,7 +1833,7 @@ export function Tables() {
             </div>
 
             {/* Colonna destra: Opzioni pagamento */}
-            <div className="lg:col-span-3 mt-6 lg:mt-0">
+            <div className="md:col-span-3 mt-6 md:mt-0">
             {/* Split Mode Selector */}
             {remainingAmount > 0 && (
               <>
@@ -2272,12 +2270,12 @@ export function Tables() {
             </div>
 
             {/* Desktop: 2 colonne - Pagamenti a sinistra, Items rimanenti a destra */}
-            <div className="lg:grid lg:grid-cols-2 lg:gap-6">
+            <div className="md:grid md:grid-cols-2 md:gap-6">
             {/* Payments List */}
             {sessionPayments.length > 0 ? (
               <div>
                 <h4 className="text-sm font-medium text-dark-400 mb-3">Pagamenti effettuati ({sessionPayments.length})</h4>
-                <div className="space-y-3 max-h-64 lg:max-h-80 overflow-y-auto">
+                <div className="space-y-3 max-h-64 md:max-h-80 overflow-y-auto">
                   {sessionPayments.map((payment, index) => (
                     <div key={payment.id} className="p-4 bg-dark-900 rounded-xl">
                       <div className="flex items-center justify-between mb-2">
@@ -2339,11 +2337,11 @@ export function Tables() {
             )}
 
             {/* Remaining items to pay - Colonna destra su desktop */}
-            <div className="mt-4 lg:mt-0">
+            <div className="mt-4 md:mt-0">
               {remainingSessionItems.length > 0 ? (
                 <div>
                   <h4 className="text-sm font-medium text-dark-400 mb-3">Prodotti ancora da pagare</h4>
-                  <div className="space-y-2 max-h-48 lg:max-h-80 overflow-y-auto">
+                  <div className="space-y-2 max-h-48 md:max-h-80 overflow-y-auto">
                     {remainingSessionItems.map((item) => (
                       <div key={item.id} className="flex justify-between p-2 bg-dark-900 rounded-lg">
                         <span className="text-white">{item.remainingQty}x {item.menu_item_name}</span>

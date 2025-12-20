@@ -229,7 +229,7 @@ export function CashRegister() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         <div className="stat-card glow-sm">
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1">
@@ -436,7 +436,7 @@ export function CashRegister() {
           </div>
 
           {/* Desktop: 2 colonne per i campi di input */}
-          <div className="lg:grid lg:grid-cols-2 lg:gap-4">
+          <div className="md:grid md:grid-cols-2 md:gap-4">
             <div>
               <label className="block text-sm font-medium text-dark-300 mb-2">
                 Fondo Cassa Iniziale (EUR)
@@ -451,7 +451,7 @@ export function CashRegister() {
               />
             </div>
 
-            <div className="mt-4 lg:mt-0">
+            <div className="mt-4 md:mt-0">
               <label className="block text-sm font-medium text-dark-300 mb-2">
                 Contanti in Cassa Finale (EUR)
               </label>

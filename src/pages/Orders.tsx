@@ -952,7 +952,7 @@ export function Orders() {
   return (
     <div className="space-y-2 sm:space-y-3">
       {/* Header compatto - tutto in una riga su desktop */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2 lg:gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2 md:gap-4">
         {/* Titolo + Tabs inline su desktop */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
           <h1 className="text-xl sm:text-2xl font-bold text-white whitespace-nowrap">{t('orders.title')}</h1>
@@ -2320,7 +2320,7 @@ export function Orders() {
         {sessionToClose && (
           <div className="space-y-4">
             {/* Desktop: 2 colonne quando contanti selezionato */}
-            <div className={paymentForm.method === 'cash' ? 'lg:grid lg:grid-cols-2 lg:gap-6' : ''}>
+            <div className={paymentForm.method === 'cash' ? 'md:grid md:grid-cols-2 md:gap-6' : ''}>
               {/* Colonna sinistra: Totale + Metodo + SMAC */}
               <div className="space-y-4">
                 <div className="text-center p-4 bg-dark-900 rounded-xl">
@@ -2333,7 +2333,7 @@ export function Orders() {
                   <div className="grid grid-cols-3 gap-2">
                     <button
                       onClick={() => setPaymentForm({ ...paymentForm, method: 'cash' })}
-                      className={`p-3 lg:p-4 rounded-xl border-2 flex flex-col items-center gap-1 lg:gap-2 transition-colors ${
+                      className={`p-3 lg:p-4 rounded-xl border-2 flex flex-col items-center gap-1 md:gap-2 transition-colors ${
                         paymentForm.method === 'cash'
                           ? 'border-primary-500 bg-primary-500/10'
                           : 'border-dark-700 hover:border-dark-600'
@@ -2344,7 +2344,7 @@ export function Orders() {
                     </button>
                     <button
                       onClick={() => setPaymentForm({ ...paymentForm, method: 'card' })}
-                      className={`p-3 lg:p-4 rounded-xl border-2 flex flex-col items-center gap-1 lg:gap-2 transition-colors ${
+                      className={`p-3 lg:p-4 rounded-xl border-2 flex flex-col items-center gap-1 md:gap-2 transition-colors ${
                         paymentForm.method === 'card'
                           ? 'border-primary-500 bg-primary-500/10'
                           : 'border-dark-700 hover:border-dark-600'
@@ -2355,7 +2355,7 @@ export function Orders() {
                     </button>
                     <button
                       onClick={() => setPaymentForm({ ...paymentForm, method: 'online' })}
-                      className={`p-3 lg:p-4 rounded-xl border-2 flex flex-col items-center gap-1 lg:gap-2 transition-colors ${
+                      className={`p-3 lg:p-4 rounded-xl border-2 flex flex-col items-center gap-1 md:gap-2 transition-colors ${
                         paymentForm.method === 'online'
                           ? 'border-primary-500 bg-primary-500/10'
                           : 'border-dark-700 hover:border-dark-600'
@@ -2381,7 +2381,7 @@ export function Orders() {
 
               {/* Colonna destra: Calcolatore Resto (solo contanti) */}
               {paymentForm.method === 'cash' && sessionToClose.total > 0 && (
-                <div className="mt-4 lg:mt-0 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl space-y-3">
+                <div className="mt-4 md:mt-0 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl space-y-3">
                   <div className="flex items-center gap-2">
                     <Calculator className="w-4 h-4 text-emerald-400" />
                     <span className="font-medium text-emerald-400">Calcolatore Resto</span>
@@ -2498,7 +2498,7 @@ export function Orders() {
             </div>
 
             {/* Desktop: 2 colonne - Pagamenti a sinistra, Opzioni a destra */}
-            <div className="lg:grid lg:grid-cols-2 lg:gap-4">
+            <div className="md:grid md:grid-cols-2 md:gap-4">
               {/* Colonna sinistra: Pagamenti effettuati */}
               <div>
                 {sessionPayments.length > 0 && (
@@ -2541,7 +2541,7 @@ export function Orders() {
               </div>
 
               {/* Colonna destra: Opzioni pagamento */}
-              <div className="mt-4 lg:mt-0">
+              <div className="mt-4 md:mt-0">
                 {/* Split Mode Selector */}
                 {remainingAmount > 0 && (
                   <>
@@ -2814,7 +2814,7 @@ export function Orders() {
             </div>
 
             {/* Desktop: 2 colonne */}
-            <div className="lg:grid lg:grid-cols-2 lg:gap-4">
+            <div className="md:grid md:grid-cols-2 md:gap-4">
               {/* Colonna sinistra: Pagamenti */}
               <div>
                 {sessionPayments.length > 0 ? (
@@ -2871,7 +2871,7 @@ export function Orders() {
               </div>
 
               {/* Colonna destra: Prodotti da pagare */}
-              <div className="mt-4 lg:mt-0">
+              <div className="mt-4 md:mt-0">
                 {remainingSessionItems.length > 0 ? (
                   <div>
                     <h4 className="text-sm font-medium text-dark-400 mb-2">Da pagare ({remainingSessionItems.length})</h4>

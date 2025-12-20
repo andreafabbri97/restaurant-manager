@@ -653,7 +653,7 @@ export function Inventory() {
       {activeTab === 'supplies' && (
         <>
           {/* Supplies Stats */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
             <div className="stat-card">
               <div className="flex items-center justify-between">
                 <div className="min-w-0 flex-1">
@@ -710,7 +710,7 @@ export function Inventory() {
                 <h2 className="font-semibold text-white text-sm sm:text-base">Top Ingredienti Acquistati</h2>
               </div>
               <div className="p-3 sm:p-4">
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3">
                   {supplyStats.topIngredients.map((ing, index) => (
                     <div key={index} className="bg-dark-900 rounded-lg p-2 sm:p-3">
                       <p className="font-medium text-white text-xs sm:text-sm truncate">{ing.ingredient_name}</p>
@@ -895,7 +895,7 @@ export function Inventory() {
                 <ShoppingCart className="w-5 h-5 text-amber-400" />
                 <h3 className="font-semibold text-amber-400">Da riordinare nei prossimi 7 giorni</h3>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-3 gap-3">
                 {urgentReorders.map((item) => (
                   <div key={item.ingredient_id} className="bg-dark-800 rounded-lg p-3">
                     <p className="font-medium text-white">{item.ingredient_name}</p>
@@ -1454,7 +1454,7 @@ export function Inventory() {
           {/* Method Selection */}
           <div>
             <label className="label">Metodo di Calcolo del Costo Unitario</label>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {(['fixed', 'last', 'weighted_avg', 'moving_avg'] as CostCalculationMethod[]).map((method) => (
                 <button
                   key={method}

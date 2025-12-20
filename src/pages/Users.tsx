@@ -324,7 +324,7 @@ export function Users() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
         <div className="stat-card">
           <div className="flex items-center justify-between">
             <div>
@@ -649,7 +649,7 @@ export function Users() {
       >
         <div className="space-y-4">
           {/* Desktop: Nome e Username su stessa riga */}
-          <div className="lg:grid lg:grid-cols-2 lg:gap-4">
+          <div className="md:grid md:grid-cols-2 md:gap-4">
             <div>
               <label className="block text-sm font-medium text-dark-300 mb-1">
                 Nome Completo *
@@ -663,7 +663,7 @@ export function Users() {
               />
             </div>
 
-            <div className="mt-4 lg:mt-0">
+            <div className="mt-4 md:mt-0">
               <label className="block text-sm font-medium text-dark-300 mb-1">
                 Username *
               </label>
@@ -680,7 +680,7 @@ export function Users() {
           </div>
 
           {/* Desktop: Password e Ruolo su stessa riga */}
-          <div className="lg:grid lg:grid-cols-2 lg:gap-4">
+          <div className="md:grid md:grid-cols-2 md:gap-4">
             <div>
               <label className="block text-sm font-medium text-dark-300 mb-1">
                 Password {editingUser ? '(lascia vuoto per non modificare)' : '*'}
@@ -694,7 +694,7 @@ export function Users() {
               />
             </div>
 
-            <div className="mt-4 lg:mt-0">
+            <div className="mt-4 md:mt-0">
               <label className="block text-sm font-medium text-dark-300 mb-1">
                 Ruolo *
               </label>

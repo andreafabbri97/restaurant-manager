@@ -443,7 +443,7 @@ export function Menu() {
       </div>
 
       {/* Menu Items Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
         {filteredItems.map((item) => (
           <div
             key={item.id}
@@ -518,7 +518,7 @@ export function Menu() {
       >
         <div className="space-y-4">
           {/* Desktop: 2 colonne */}
-          <div className="lg:grid lg:grid-cols-2 lg:gap-4">
+          <div className="md:grid md:grid-cols-2 md:gap-4">
             <div>
               <label className="label">Nome *</label>
               <input
@@ -530,7 +530,7 @@ export function Menu() {
               />
             </div>
 
-            <div className="mt-4 lg:mt-0">
+            <div className="mt-4 md:mt-0">
               <label className="label">Categoria *</label>
               <select
                 value={itemForm.category_id}
@@ -548,7 +548,7 @@ export function Menu() {
             </div>
           </div>
 
-          <div className="lg:grid lg:grid-cols-2 lg:gap-4">
+          <div className="md:grid md:grid-cols-2 md:gap-4">
             <div>
               <label className="label">Prezzo (€) *</label>
               <input
@@ -561,7 +561,7 @@ export function Menu() {
               />
             </div>
 
-            <div className="mt-4 lg:mt-0 flex items-center justify-between lg:items-end lg:pb-1">
+            <div className="mt-4 md:mt-0 flex items-center justify-between md:items-end md:pb-1">
               <span className="text-white">Disponibile</span>
               <button
                 type="button"

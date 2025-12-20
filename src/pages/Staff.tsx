@@ -535,7 +535,7 @@ export function Staff() {
           </h2>
         </div>
         <div className="card-body">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-3 gap-4">
             {employees.map((emp) => (
               <div
                 key={emp.id}
@@ -797,11 +797,11 @@ export function Staff() {
           });
         }}
         title="Nuovo Turno"
-        size="lg"
+        size="xl"
       >
         <div className="space-y-4">
           {/* Desktop: dipendente e data su stessa riga */}
-          <div className="lg:grid lg:grid-cols-2 lg:gap-4">
+          <div className="md:grid md:grid-cols-2 md:gap-4">
             <div>
               <label className="label">Dipendente *</label>
               <select
@@ -817,7 +817,7 @@ export function Staff() {
               </select>
             </div>
 
-            <div className="mt-4 lg:mt-0">
+            <div className="mt-4 md:mt-0">
               <label className="label">Data *</label>
               <input
                 type="date"
@@ -829,7 +829,7 @@ export function Staff() {
           </div>
 
           {/* Orari e tipo turno */}
-          <div className="lg:grid lg:grid-cols-4 lg:gap-4">
+          <div className="md:grid md:grid-cols-4 md:gap-4">
             <div>
               <label className="label">Inizio</label>
               <input
@@ -839,7 +839,7 @@ export function Staff() {
                 className="input"
               />
             </div>
-            <div className="mt-4 lg:mt-0">
+            <div className="mt-4 md:mt-0">
               <label className="label">Fine</label>
               <input
                 type="time"
@@ -848,7 +848,7 @@ export function Staff() {
                 className="input"
               />
             </div>
-            <div className="mt-4 lg:mt-0 lg:col-span-2">
+            <div className="mt-4 md:mt-0 md:col-span-2">
               <label className="label">Tipo Turno</label>
               <select
                 value={shiftForm.shift_type}
