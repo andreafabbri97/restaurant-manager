@@ -3,11 +3,19 @@
  * Usa le impostazioni personalizzate dal License Manager
  */
 
+import { useState } from 'react';
 import { ShieldX, Phone, Mail, RefreshCw } from 'lucide-react';
 import { useLicense } from '../context/LicenseContext';
 
 export function LicenseBlocked() {
-  const { licenseStatus, adminSettings, recheckLicense, isChecking } = useLicense();
+  const { licenseStatus, adminSettings, recheckLicense } = useLicense();
+  const [isRechecking, setIsRechecking] = useState(false);
+
+  const handleRecheck = async () => {
+    setIsRechecking(true);
+    await recheckLicense();
+    setIsRechecking(false);
+  };
 
   // Usa le impostazioni admin se disponibili, altrimenti fallback
   const settings = adminSettings || {
@@ -72,12 +80,12 @@ export function LicenseBlocked() {
 
         {/* Retry Button */}
         <button
-          onClick={recheckLicense}
-          disabled={isChecking}
+          onClick={handleRecheck}
+          disabled={isRechecking}
           className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          <RefreshCw className={`w-4 h-4 ${isChecking ? 'animate-spin' : ''}`} />
-          {isChecking ? 'Verifica in corso...' : 'Ricontrolla Licenza'}
+          <RefreshCw className={`w-4 h-4 ${isRechecking ? 'animate-spin' : ''}`} />
+          {isRechecking ? 'Verifica in corso...' : 'Ricontrolla Licenza'}
         </button>
 
         {/* Version */}

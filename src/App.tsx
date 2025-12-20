@@ -67,10 +67,10 @@ function LicenseRouteChecker() {
 
 // Componente che controlla la licenza
 function LicenseGate({ children }: { children: React.ReactNode }) {
-  const { isLicenseValid, isChecking } = useLicense();
+  const { isLicenseValid, isInitializing } = useLicense();
 
-  // Durante il check iniziale, mostra un loader
-  if (isChecking) {
+  // Mostra loader SOLO durante il primo check all'avvio
+  if (isInitializing) {
     return (
       <div className="min-h-screen bg-dark-900 flex items-center justify-center">
         <div className="text-center">

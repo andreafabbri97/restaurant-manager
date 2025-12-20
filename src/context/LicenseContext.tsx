@@ -33,7 +33,7 @@ interface LicenseContextType {
   isLicenseValid: boolean;
   licenseStatus: LicenseStatus | null;
   adminSettings: AdminSettings | null;
-  isChecking: boolean;
+  isInitializing: boolean; // Solo per il primo check all'avvio
   recheckLicense: () => Promise<void>;
 }
 
@@ -53,7 +53,8 @@ const LICENSE_CHECK_INTERVAL = 2 * 60 * 1000;
 export function LicenseProvider({ children }: { children: ReactNode }) {
   const [licenseStatus, setLicenseStatus] = useState<LicenseStatus | null>(null);
   const [adminSettings, setAdminSettings] = useState<AdminSettings | null>(null);
-  const [isChecking, setIsChecking] = useState(true);
+  const [isInitializing, setIsInitializing] = useState(true); // Solo primo avvio
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   // Carica le impostazioni admin dal server licenze
   const fetchAdminSettings = useCallback(async () => {
@@ -82,8 +83,7 @@ export function LicenseProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const checkLicense = useCallback(async () => {
-    setIsChecking(true);
+  const checkLicense = useCallback(async (isInitialCheck = false) => {
     try {
       // Chiamata RPC al server licenze
       const response = await fetch(`${LICENSE_SERVER_URL}/rest/v1/rpc/check_license`, {
@@ -115,26 +115,33 @@ export function LicenseProvider({ children }: { children: ReactNode }) {
       console.warn('License check failed, using grace period:', error);
       setLicenseStatus({ valid: true, reason: 'grace_period' });
     } finally {
-      setIsChecking(false);
+      // Termina l'inizializzazione solo al primo check
+      if (isInitialCheck) {
+        setIsInitializing(false);
+        setHasInitialized(true);
+      }
     }
   }, [fetchAdminSettings]);
 
   useEffect(() => {
-    checkLicense();
+    // Primo check all'avvio (mostra loader)
+    checkLicense(true);
 
-    // Ricontrolla ogni 2 minuti per rilevare sospensioni rapidamente
-    const interval = setInterval(checkLicense, LICENSE_CHECK_INTERVAL);
+    // Ricontrolla ogni 2 minuti per rilevare sospensioni rapidamente (silenzioso)
+    const interval = setInterval(() => checkLicense(false), LICENSE_CHECK_INTERVAL);
 
-    // Ricontrolla quando l'utente torna sulla tab/finestra
+    // Ricontrolla quando l'utente torna sulla tab/finestra (silenzioso)
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        checkLicense();
+      if (document.visibilityState === 'visible' && hasInitialized) {
+        checkLicense(false);
       }
     };
 
-    // Ricontrolla quando la finestra ottiene il focus
+    // Ricontrolla quando la finestra ottiene il focus (silenzioso)
     const handleFocus = () => {
-      checkLicense();
+      if (hasInitialized) {
+        checkLicense(false);
+      }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -145,17 +152,21 @@ export function LicenseProvider({ children }: { children: ReactNode }) {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('focus', handleFocus);
     };
-  }, [checkLicense]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const isLicenseValid = licenseStatus?.valid ?? true; // Default true durante il check
+
+  // Funzione pubblica per ricontrollare (sempre silenzioso)
+  const recheckLicense = useCallback(() => checkLicense(false), [checkLicense]);
 
   return (
     <LicenseContext.Provider value={{
       isLicenseValid,
       licenseStatus,
       adminSettings,
-      isChecking,
-      recheckLicense: checkLicense
+      isInitializing,
+      recheckLicense
     }}>
       {children}
     </LicenseContext.Provider>
