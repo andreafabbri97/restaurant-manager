@@ -192,10 +192,14 @@ CREATE TABLE IF NOT EXISTS users (
   password VARCHAR(255) NOT NULL,
   name VARCHAR(100) NOT NULL,
   role VARCHAR(20) NOT NULL DEFAULT 'staff',
+  employee_id INTEGER REFERENCES employees(id) ON DELETE SET NULL,
   active BOOLEAN DEFAULT true,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   last_login TIMESTAMP WITH TIME ZONE
 );
+
+-- Aggiungi employee_id se la tabella esiste già
+ALTER TABLE users ADD COLUMN IF NOT EXISTS employee_id INTEGER REFERENCES employees(id) ON DELETE SET NULL;
 
 -- ============== CASH CLOSURES (Chiusura Cassa) ==============
 CREATE TABLE IF NOT EXISTS cash_closures (
@@ -241,8 +245,14 @@ CREATE TABLE IF NOT EXISTS session_payments (
   amount DECIMAL(10, 2) NOT NULL,
   payment_method VARCHAR(20) NOT NULL,
   paid_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  notes VARCHAR(100)
+  notes VARCHAR(100),
+  smac_passed BOOLEAN DEFAULT false,
+  paid_items JSONB DEFAULT '[]'
 );
+
+-- Aggiungi colonne se la tabella esiste già
+ALTER TABLE session_payments ADD COLUMN IF NOT EXISTS smac_passed BOOLEAN DEFAULT false;
+ALTER TABLE session_payments ADD COLUMN IF NOT EXISTS paid_items JSONB DEFAULT '[]';
 
 -- Aggiungi colonne session_id e order_number a orders (se non esistono)
 -- ALTER TABLE orders ADD COLUMN IF NOT EXISTS session_id INTEGER REFERENCES table_sessions(id);
