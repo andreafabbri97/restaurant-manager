@@ -128,7 +128,7 @@ export function Login() {
 
         {/* Footer */}
         <div className="text-center text-dark-500 text-sm mt-6">
-          <p>Restaurant Manager v2.0</p>
+          <p>Restaurant Manager v2.5</p>
           <p className="mt-1">© 2024-2025 Andrea Fabbri - Tutti i diritti riservati</p>
         </div>
       </div>

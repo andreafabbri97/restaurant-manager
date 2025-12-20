@@ -378,7 +378,7 @@ export function Settings() {
         <div className="card-body">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 text-center">
             <div className="p-3 sm:p-4 bg-dark-900 rounded-xl">
-              <p className="text-lg sm:text-2xl font-bold text-primary-400">2.0</p>
+              <p className="text-lg sm:text-2xl font-bold text-primary-400">2.5</p>
               <p className="text-xs sm:text-sm text-dark-400">{t('settings.version')}</p>
             </div>
             <div className="p-3 sm:p-4 bg-dark-900 rounded-xl">

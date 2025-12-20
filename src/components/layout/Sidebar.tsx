@@ -302,7 +302,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </button>
 
           <div className={`text-[9px] text-dark-500 text-center ${sidebarCollapsed ? 'lg:hidden' : ''}`}>
-            v2.0 · © 2025 Andrea Fabbri
+            v2.5 · © 2025 Andrea Fabbri
           </div>
         </div>
       </aside>
