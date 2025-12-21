@@ -1386,6 +1386,7 @@ export async function updateSettings(settings: Partial<Settings>): Promise<void>
             address: settings.address,
             phone: settings.phone,
             email: settings.email,
+            cover_charge: settings.cover_charge,
           };
           const filteredBasic = Object.fromEntries(
             Object.entries(basicSettings).filter(([, v]) => v !== undefined)

@@ -1179,26 +1179,18 @@ export function Orders() {
                             }`}
                           >
                             <div className="px-2 pb-1.5 space-y-1">
-                              {/* Stato sessione + Totale - compatto */}
-                              <div className="flex items-center justify-between text-[10px] pt-1 border-t border-dark-700">
-                                {order.session_id ? (
-                                  <span className={order.session_status === 'open' ? 'text-primary-400' : 'text-emerald-400'}>
-                                    {order.session_status === 'open' ? 'Conto Aperto' : 'Conto Chiuso'}
-                                  </span>
-                                ) : <span />}
-                                <span className="font-bold text-primary-400 text-xs">
-                                  {formatPrice(order.total)}
-                                </span>
-                              </div>
-
-                              {/* Items dell'ordine */}
+                              {/* Items dell'ordine con note piatto visibili */}
                               {allOrderItems[order.id] && allOrderItems[order.id].length > 0 && (
-                                <div className="bg-dark-800 rounded p-1.5">
+                                <div className="bg-dark-800 rounded p-1.5 mt-1">
                                   {allOrderItems[order.id].map((item) => (
-                                    <div key={item.id} className="flex items-center gap-1.5 text-sm leading-snug">
-                                      <span className="font-bold text-primary-400">{item.quantity}x</span>
-                                      <span className="text-white truncate">{item.menu_item_name}</span>
-                                      {item.notes && <span className="text-[10px] text-amber-400">⚠️</span>}
+                                    <div key={item.id} className="leading-snug mb-1 last:mb-0">
+                                      <div className="flex items-center gap-1.5 text-sm">
+                                        <span className="font-bold text-primary-400">{item.quantity}x</span>
+                                        <span className="text-white truncate">{item.menu_item_name}</span>
+                                      </div>
+                                      {item.notes && (
+                                        <p className="text-[10px] text-amber-400 ml-5 truncate">⚠️ {item.notes}</p>
+                                      )}
                                     </div>
                                   ))}
                                 </div>
@@ -2023,6 +2015,46 @@ export function Orders() {
                 )}
               </span>
             </div>
+
+            {/* Riepilogo Pagamenti - per sessioni con pagamenti split */}
+            {selectedOrder.session_id && sessionPayments.length > 0 && (
+              <div className="pt-4 border-t border-dark-700">
+                <p className="text-sm text-dark-400 mb-3">
+                  Riepilogo Pagamenti {sessionPayments.length > 1 && <span className="text-amber-400">(Pagamento Diviso)</span>}
+                </p>
+                <div className="space-y-2">
+                  {sessionPayments.map((payment, idx) => (
+                    <div key={payment.id} className="flex items-center justify-between p-3 bg-dark-900 rounded-xl">
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs font-mono bg-dark-700 px-2 py-1 rounded text-dark-400">
+                          #{idx + 1}
+                        </span>
+                        <div>
+                          <p className="font-medium text-white">
+                            {formatPrice(payment.amount)}
+                          </p>
+                          <p className="text-xs text-dark-400">
+                            {payment.payment_method === 'cash' ? 'Contanti' : payment.payment_method === 'card' ? 'Carta' : 'Online'}
+                            {payment.notes && ` • ${payment.notes}`}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {smacEnabled && (
+                          <span className={`text-xs px-2 py-1 rounded ${
+                            payment.smac_passed
+                              ? 'bg-emerald-500/20 text-emerald-400'
+                              : 'bg-red-500/20 text-red-400'
+                          }`}>
+                            SMAC {payment.smac_passed ? '✓' : '✗'}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Session Actions (only for open sessions) */}
             {selectedOrder.session_id && selectedOrder.session_status === 'open' && (

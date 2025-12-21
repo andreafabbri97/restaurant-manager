@@ -393,14 +393,13 @@ export function Settings() {
             <div className="flex items-center gap-2">
               <span className="text-dark-400">{settings?.currency || '€'}</span>
               <input
-                type="text"
-                inputMode="decimal"
-                value={settings?.cover_charge ?? 0}
+                type="number"
+                step="0.01"
+                min="0"
+                value={settings?.cover_charge ?? ''}
                 onChange={(e) => {
                   const val = e.target.value;
-                  if (val === '' || /^\d*\.?\d*$/.test(val)) {
-                    setSettings(s => s ? { ...s, cover_charge: val === '' ? 0 : parseFloat(val) || 0 } : null);
-                  }
+                  setSettings(s => s ? { ...s, cover_charge: val === '' ? 0 : parseFloat(val) || 0 } : null);
                 }}
                 className="input text-sm sm:text-base w-24"
                 placeholder="0.00"
