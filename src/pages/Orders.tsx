@@ -180,11 +180,11 @@ export function Orders() {
       const data = await getOrders(selectedDate);
       setOrders(data);
 
-      // Carica gli items per tutti gli ordini non consegnati (per vista cucina)
-      const activeOrders = data.filter(o => o.status !== 'delivered' && o.status !== 'cancelled');
+      // Carica gli items per tutti gli ordini (inclusi consegnati, esclusi cancellati)
+      const visibleOrders = data.filter(o => o.status !== 'cancelled');
       const itemsMap: Record<number, OrderItem[]> = {};
       await Promise.all(
-        activeOrders.map(async (order) => {
+        visibleOrders.map(async (order) => {
           const items = await getOrderItems(order.id);
           itemsMap[order.id] = items;
         })
