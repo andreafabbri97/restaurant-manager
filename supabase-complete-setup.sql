@@ -58,6 +58,8 @@ CREATE TABLE IF NOT EXISTS inventory (
   ingredient_id INTEGER NOT NULL REFERENCES ingredients(id) ON DELETE CASCADE,
   quantity DECIMAL(10, 2) NOT NULL DEFAULT 0,
   threshold DECIMAL(10, 2) NOT NULL DEFAULT 10,
+  threshold_mode VARCHAR(10) DEFAULT 'manual',  -- 'manual' o 'eoq'
+  eoq_threshold DECIMAL(10, 2),                 -- Soglia calcolata EOQ (reorder_point)
   UNIQUE(ingredient_id)
 );
 
@@ -306,6 +308,10 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS employee_id INTEGER REFERENCES employ
 -- Session payments: SMAC e items pagati
 ALTER TABLE session_payments ADD COLUMN IF NOT EXISTS smac_passed BOOLEAN DEFAULT false;
 ALTER TABLE session_payments ADD COLUMN IF NOT EXISTS paid_items JSONB DEFAULT '[]';
+
+-- Inventory: modalità soglia (manuale o EOQ)
+ALTER TABLE inventory ADD COLUMN IF NOT EXISTS threshold_mode VARCHAR(10) DEFAULT 'manual';
+ALTER TABLE inventory ADD COLUMN IF NOT EXISTS eoq_threshold DECIMAL(10, 2);
 
 -- ============================================
 -- INDICI PER PERFORMANCE

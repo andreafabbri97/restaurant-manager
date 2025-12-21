@@ -107,8 +107,10 @@ export interface InventoryItem {
   ingredient_id: number;
   ingredient_name?: string;
   quantity: number;
-  threshold: number;
+  threshold: number; // Soglia manuale impostata dall'utente
   unit?: string;
+  threshold_mode?: 'manual' | 'eoq'; // Modalità soglia: manuale o calcolata EOQ
+  eoq_threshold?: number; // Soglia calcolata dall'EOQ (reorder_point)
 }
 
 export interface Supply {

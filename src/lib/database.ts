@@ -835,7 +835,59 @@ export async function getInventory(): Promise<InventoryItem[]> {
 
 export async function getLowStockItems(): Promise<InventoryItem[]> {
   const inventory = await getInventory();
-  return inventory.filter(item => item.quantity <= item.threshold);
+  return inventory.filter(item => {
+    // Usa la soglia appropriata in base alla modalità
+    const effectiveThreshold = item.threshold_mode === 'eoq' && item.eoq_threshold != null
+      ? item.eoq_threshold
+      : item.threshold;
+    return item.quantity <= effectiveThreshold;
+  });
+}
+
+// Aggiorna la modalità soglia per un ingrediente (manuale o EOQ)
+export async function updateInventoryThresholdMode(
+  ingredientId: number,
+  mode: 'manual' | 'eoq',
+  eoqThreshold?: number
+): Promise<void> {
+  if (isSupabaseConfigured && supabase) {
+    const updateData: { threshold_mode: string; eoq_threshold?: number } = { threshold_mode: mode };
+    if (eoqThreshold != null) updateData.eoq_threshold = eoqThreshold;
+
+    const { error } = await supabase
+      .from('inventory')
+      .update(updateData)
+      .eq('ingredient_id', ingredientId);
+    if (error) throw error;
+    return;
+  }
+
+  const inventory = getLocalData<InventoryItem[]>('inventory', []);
+  const index = inventory.findIndex(i => i.ingredient_id === ingredientId);
+  if (index !== -1) {
+    inventory[index].threshold_mode = mode;
+    if (eoqThreshold != null) inventory[index].eoq_threshold = eoqThreshold;
+    setLocalData('inventory', inventory);
+  }
+}
+
+// Aggiorna la soglia manuale per un ingrediente
+export async function updateInventoryThreshold(ingredientId: number, threshold: number): Promise<void> {
+  if (isSupabaseConfigured && supabase) {
+    const { error } = await supabase
+      .from('inventory')
+      .update({ threshold })
+      .eq('ingredient_id', ingredientId);
+    if (error) throw error;
+    return;
+  }
+
+  const inventory = getLocalData<InventoryItem[]>('inventory', []);
+  const index = inventory.findIndex(i => i.ingredient_id === ingredientId);
+  if (index !== -1) {
+    inventory[index].threshold = threshold;
+    setLocalData('inventory', inventory);
+  }
 }
 
 export async function createIngredient(ingredient: Omit<Ingredient, 'id'>): Promise<Ingredient> {

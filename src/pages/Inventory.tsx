@@ -16,6 +16,7 @@ import {
   X,
   Settings,
   DollarSign,
+  Bell,
 } from 'lucide-react';
 import {
   getInventory,
@@ -33,6 +34,8 @@ import {
   getInventorySettings,
   updateInventorySettings,
   createInvoice,
+  updateInventoryThresholdMode,
+  updateInventoryThreshold,
 } from '../lib/database';
 import { showToast } from '../components/ui/Toast';
 import { Modal } from '../components/ui/Modal';
@@ -108,6 +111,12 @@ export function Inventory() {
   const [showCostModal, setShowCostModal] = useState(false);
   const [selectedIngredient, setSelectedIngredient] = useState<Ingredient | null>(null);
   const [newCost, setNewCost] = useState('');
+
+  // Modifica soglia scorta
+  const [showThresholdModal, setShowThresholdModal] = useState(false);
+  const [selectedThresholdItem, setSelectedThresholdItem] = useState<InventoryItem | null>(null);
+  const [thresholdValue, setThresholdValue] = useState('');
+  const [thresholdMode, setThresholdMode] = useState<'manual' | 'eoq'>('manual');
 
   useEffect(() => {
     loadData();
@@ -205,6 +214,55 @@ export function Inventory() {
     } catch (error) {
       console.error('Error updating cost:', error);
       showToast('Errore nell\'aggiornamento del costo', 'error');
+    }
+  }
+
+  function openThresholdModal(item: InventoryItem) {
+    setSelectedThresholdItem(item);
+    setThresholdValue(item.threshold.toString());
+    setThresholdMode(item.threshold_mode || 'manual');
+    // Cerca il valore EOQ per questo ingrediente
+    const eoqItem = eoqData.find(e => e.ingredient_id === item.ingredient_id);
+    if (eoqItem && item.threshold_mode === 'eoq') {
+      // Se è in modalità EOQ, mostra il reorder_point
+      setThresholdValue(eoqItem.reorder_point.toString());
+    }
+    setShowThresholdModal(true);
+  }
+
+  async function handleUpdateThreshold() {
+    if (!selectedThresholdItem) return;
+
+    try {
+      if (thresholdMode === 'manual') {
+        const threshold = parseFloat(thresholdValue);
+        if (isNaN(threshold) || threshold < 0) {
+          showToast('Inserisci una soglia valida', 'warning');
+          return;
+        }
+        await updateInventoryThreshold(selectedThresholdItem.ingredient_id, threshold);
+        await updateInventoryThresholdMode(selectedThresholdItem.ingredient_id, 'manual');
+      } else {
+        // Modalità EOQ - usa il reorder_point calcolato
+        const eoqItem = eoqData.find(e => e.ingredient_id === selectedThresholdItem.ingredient_id);
+        if (!eoqItem || eoqItem.reorder_point === 0) {
+          showToast('EOQ non disponibile: servono più dati di consumo', 'warning');
+          return;
+        }
+        await updateInventoryThresholdMode(
+          selectedThresholdItem.ingredient_id,
+          'eoq',
+          eoqItem.reorder_point
+        );
+      }
+
+      showToast('Soglia scorta aggiornata', 'success');
+      setShowThresholdModal(false);
+      setSelectedThresholdItem(null);
+      loadData();
+    } catch (error) {
+      console.error('Error updating threshold:', error);
+      showToast('Errore nell\'aggiornamento della soglia', 'error');
     }
   }
 
@@ -559,7 +617,9 @@ export function Inventory() {
                       <span className={`font-semibold ${isLow ? 'text-red-400' : 'text-white'}`}>
                         {item.quantity.toFixed(2)} {item.unit}
                       </span>
-                      <span className="text-dark-500 text-xs">Soglia: {item.threshold}</span>
+                      <span className="text-dark-500 text-xs">
+                        Soglia: {item.threshold} {item.threshold_mode === 'eoq' && <span className="text-primary-400">(EOQ)</span>}
+                      </span>
                     </div>
                     <div className="flex items-center gap-1">
                       <button
@@ -575,6 +635,13 @@ export function Inventory() {
                         title="Modifica costo"
                       >
                         <DollarSign className="w-4 h-4 text-dark-300" />
+                      </button>
+                      <button
+                        onClick={() => openThresholdModal(item)}
+                        className={`p-2 bg-dark-700 rounded-lg ${item.threshold_mode === 'eoq' ? 'ring-1 ring-primary-500' : ''}`}
+                        title="Soglia scorta"
+                      >
+                        <Bell className={`w-4 h-4 ${item.threshold_mode === 'eoq' ? 'text-primary-400' : 'text-dark-300'}`} />
                       </button>
                     </div>
                   </div>
@@ -637,6 +704,13 @@ export function Inventory() {
                               title="Modifica costo unitario"
                             >
                               <DollarSign className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => openThresholdModal(item)}
+                              className={`btn-ghost btn-sm ${item.threshold_mode === 'eoq' ? 'text-primary-400' : ''}`}
+                              title={`Soglia scorta (${item.threshold_mode === 'eoq' ? 'EOQ' : 'Manuale'})`}
+                            >
+                              <Bell className="w-4 h-4" />
                             </button>
                           </div>
                         </td>
@@ -1529,6 +1603,159 @@ export function Inventory() {
               Salva Impostazioni
             </button>
             <button onClick={() => setShowSettingsModal(false)} className="btn-secondary">
+              Annulla
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Threshold Modal */}
+      <Modal
+        isOpen={showThresholdModal}
+        onClose={() => setShowThresholdModal(false)}
+        title={`Soglia Scorta - ${selectedThresholdItem?.ingredient_name}`}
+        size="sm"
+      >
+        <div className="space-y-4">
+          {/* Stato attuale */}
+          <div className="bg-dark-900 rounded-xl p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-dark-400">Quantità attuale:</span>
+              <span className="text-white font-semibold">
+                {selectedThresholdItem?.quantity.toFixed(2)} {selectedThresholdItem?.unit}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-dark-400">Soglia attuale:</span>
+              <span className={`font-semibold ${selectedThresholdItem?.threshold_mode === 'eoq' ? 'text-primary-400' : 'text-amber-400'}`}>
+                {selectedThresholdItem?.threshold.toFixed(2)} {selectedThresholdItem?.unit}
+                <span className="text-xs ml-1">
+                  ({selectedThresholdItem?.threshold_mode === 'eoq' ? 'EOQ' : 'Manuale'})
+                </span>
+              </span>
+            </div>
+          </div>
+
+          {/* Selezione modalità */}
+          <div>
+            <label className="label">Modalità Soglia</label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => {
+                  setThresholdMode('manual');
+                  setThresholdValue(selectedThresholdItem?.threshold.toString() || '10');
+                }}
+                className={`p-3 rounded-xl border-2 transition-all ${
+                  thresholdMode === 'manual'
+                    ? 'border-amber-500 bg-amber-500/10'
+                    : 'border-dark-600 hover:border-dark-500'
+                }`}
+              >
+                <Edit2 className="w-5 h-5 mx-auto mb-1 text-amber-400" />
+                <div className="text-sm font-medium">Manuale</div>
+                <div className="text-xs text-dark-400">Imposti tu</div>
+              </button>
+              <button
+                onClick={() => {
+                  setThresholdMode('eoq');
+                  const eoqItem = eoqData.find(e => e.ingredient_id === selectedThresholdItem?.ingredient_id);
+                  if (eoqItem) {
+                    setThresholdValue(eoqItem.reorder_point.toString());
+                  }
+                }}
+                className={`p-3 rounded-xl border-2 transition-all ${
+                  thresholdMode === 'eoq'
+                    ? 'border-primary-500 bg-primary-500/10'
+                    : 'border-dark-600 hover:border-dark-500'
+                }`}
+              >
+                <Calculator className="w-5 h-5 mx-auto mb-1 text-primary-400" />
+                <div className="text-sm font-medium">EOQ</div>
+                <div className="text-xs text-dark-400">Auto-calcolata</div>
+              </button>
+            </div>
+          </div>
+
+          {/* Input soglia manuale */}
+          {thresholdMode === 'manual' && (
+            <div>
+              <label className="label">Soglia Scorta ({selectedThresholdItem?.unit})</label>
+              <input
+                type="text"
+                inputMode="decimal"
+                value={thresholdValue}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === '' || /^\d*\.?\d*$/.test(val)) {
+                    setThresholdValue(val);
+                  }
+                }}
+                className="input"
+                placeholder="10"
+              />
+              <p className="text-xs text-dark-500 mt-1">
+                Riceverai un avviso quando la quantità scende sotto questa soglia
+              </p>
+            </div>
+          )}
+
+          {/* Info EOQ */}
+          {thresholdMode === 'eoq' && (
+            <div className="space-y-3">
+              {(() => {
+                const eoqItem = eoqData.find(e => e.ingredient_id === selectedThresholdItem?.ingredient_id);
+                if (!eoqItem || eoqItem.reorder_point === 0) {
+                  return (
+                    <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4">
+                      <p className="text-sm text-amber-400">
+                        <strong>EOQ non disponibile</strong><br />
+                        Servono più dati di consumo e ordini per calcolare automaticamente la soglia ottimale.
+                      </p>
+                    </div>
+                  );
+                }
+                return (
+                  <div className="bg-primary-500/10 border border-primary-500/30 rounded-xl p-4 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-dark-400 text-sm">Punto di riordino:</span>
+                      <span className="text-primary-400 font-bold">
+                        {eoqItem.reorder_point.toFixed(2)} {selectedThresholdItem?.unit}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-dark-400 text-sm">Scorta sicurezza:</span>
+                      <span className="text-white">
+                        {eoqItem.safety_stock.toFixed(2)} {selectedThresholdItem?.unit}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-dark-400 text-sm">Consumo medio/giorno:</span>
+                      <span className="text-white">
+                        {eoqItem.avg_daily_consumption.toFixed(2)} {selectedThresholdItem?.unit}
+                      </span>
+                    </div>
+                    <p className="text-xs text-primary-300 pt-2 border-t border-primary-500/30">
+                      La soglia verrà aggiornata automaticamente in base ai consumi
+                    </p>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="flex items-center gap-3 pt-4 border-t border-dark-700">
+            <button
+              onClick={handleUpdateThreshold}
+              className="btn-primary flex-1"
+              disabled={thresholdMode === 'eoq' && !eoqData.find(e => e.ingredient_id === selectedThresholdItem?.ingredient_id)?.reorder_point}
+            >
+              Salva
+            </button>
+            <button
+              onClick={() => setShowThresholdModal(false)}
+              className="btn-secondary"
+            >
               Annulla
             </button>
           </div>
