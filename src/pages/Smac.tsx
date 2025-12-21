@@ -484,13 +484,13 @@ export function Smac() {
                         </div>
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="font-semibold text-white text-sm sm:text-base truncate">
+                        <p className="font-semibold text-white text-sm sm:text-base">
                           {isSession ? (
                             <>
                               Conto - {entry.tableName}
                               <span className="text-xs text-dark-400 ml-1 sm:ml-2">
-                                {entry.payments.length > 0 && `(${entry.payments.length} pag.) `}
-                                ({entry.orders.length} com.)
+                                {entry.payments.length > 0 && `(${entry.payments.length} pagamenti) `}
+                                ({entry.orders.length} comande)
                               </span>
                             </>
                           ) : (
