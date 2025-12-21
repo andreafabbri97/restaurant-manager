@@ -1,11 +1,7 @@
 name: Update All Clients
 
 on:
-  push:
-    branches:
-      - main
-      - master
-  workflow_dispatch:  # Permette di lanciarlo manualmente da GitHub
+  workflow_dispatch:  # Solo manuale - clicca "Run workflow" su GitHub Actions
 
 jobs:
   update-clients:
