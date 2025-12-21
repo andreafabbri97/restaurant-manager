@@ -1,7 +1,7 @@
 -- ============================================
 -- RESTAURANT MANAGER - SETUP COMPLETO SUPABASE
 -- ============================================
--- Versione: 2.5.0
+-- Versione: 3.0.0
 -- Data: Dicembre 2025
 --
 -- ISTRUZIONI:

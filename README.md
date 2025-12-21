@@ -13,7 +13,7 @@ Questa sezione contiene tutto il contesto necessario per continuare lo sviluppo 
 | Campo | Valore |
 |-------|--------|
 | **Nome** | Restaurant Manager System |
-| **Versione** | 2.6 |
+| **Versione** | 3.0 |
 | **Proprietario** | Andrea Fabbri |
 | **Repository** | https://github.com/andreafabbri97/restaurant-manager |
 | **Deploy** | https://andreafabbri97.github.io/restaurant-manager/ |
@@ -441,5 +441,5 @@ Ripeti per ogni persona. Quando il rimanente arriva a zero, il conto si chiude a
 
 ---
 
-*Versione 2.6 - Restaurant Manager System*
-*Copyright (c) 2024-2025 Andrea Fabbri. Tutti i diritti riservati.*
+*Versione 3.0 - Restaurant Manager System*
+*Copyright (c) 2025 Andrea Fabbri. Tutti i diritti riservati.*
