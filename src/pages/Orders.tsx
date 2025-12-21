@@ -242,6 +242,24 @@ export function Orders() {
 
     try {
       await updateOrderStatus(order.id, config.next as Order['status']);
+
+      // Sposta lo stato espanso dalla vecchia colonna alla nuova
+      setExpandedByColumn(prev => {
+        const newState = { ...prev };
+        const oldStatus = order.status;
+        const newStatus = config.next as string;
+
+        // Se l'ordine era espanso nella vecchia colonna, spostalo nella nuova
+        if (newState[oldStatus]?.has(order.id)) {
+          newState[oldStatus] = new Set(newState[oldStatus]);
+          newState[oldStatus].delete(order.id);
+          newState[newStatus] = new Set(newState[newStatus] || []);
+          newState[newStatus].add(order.id);
+        }
+
+        return newState;
+      });
+
       showToast(`Ordine #${order.id} aggiornato`, 'success');
       loadOrdersCallback();
     } catch (error) {
@@ -293,9 +311,14 @@ export function Orders() {
           })
         );
         setSessionOrdersItems(itemsMap);
+
+        // Carica i pagamenti della sessione (per mostrare info SMAC)
+        const payments = await getSessionPayments(order.session_id);
+        setSessionPayments(payments);
       } else {
         setSessionOrders([]);
         setSessionOrdersItems({});
+        setSessionPayments([]);
       }
 
       setShowDetails(true);
@@ -1045,7 +1068,7 @@ export function Orders() {
                   </div>
                   <span className={config.color}>{statusOrders.length}</span>
                 </div>
-                <div className="p-3 sm:p-4 space-y-2 max-h-[50vh] sm:max-h-[60vh] overflow-y-auto">
+                <div className="p-3 sm:p-4 space-y-2">
                   {statusOrders.length === 0 ? (
                     <p className="text-dark-500 text-center py-4 text-sm">
                       {t('orders.noActiveOrders')}
@@ -1846,6 +1869,23 @@ export function Orders() {
                     </div>
                   )}
                 </>
+              )}
+              {/* SMAC per sessioni con pagamenti */}
+              {selectedOrder.session_id && smacEnabled && (
+                <div>
+                  <p className="text-sm text-dark-400">SMAC</p>
+                  <p className="font-medium text-white">
+                    {(() => {
+                      const smacPayments = sessionPayments.filter(p => p.smac_passed);
+                      if (smacPayments.length === 0) return 'No';
+                      const smacTotal = smacPayments.reduce((sum, p) => sum + p.amount, 0);
+                      const sessionTotal = sessionOrders.reduce((sum, o) => sum + o.total, 0);
+                      // Se l'importo SMAC è uguale o superiore al totale, mostra "Sì (Totale)"
+                      if (smacTotal >= sessionTotal) return 'Sì (Totale)';
+                      return `Sì (${formatPrice(smacTotal)})`;
+                    })()}
+                  </p>
+                </div>
               )}
             </div>
 
