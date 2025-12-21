@@ -1102,12 +1102,12 @@ export function Orders() {
                           {/* Header compatto - sempre visibile */}
                           <div
                             onClick={toggleExpand}
-                            className="p-2 sm:p-3 cursor-pointer hover:bg-dark-800 transition-colors"
+                            className="px-2 py-1.5 sm:px-3 sm:py-2 cursor-pointer hover:bg-dark-800 transition-colors"
                           >
                             <div className="flex items-center justify-between gap-1 sm:gap-2">
                               {/* ID + Titolo + Cliente su una riga */}
                               <div className="flex items-center gap-1 sm:gap-2 min-w-0 flex-1">
-                                <span className="text-[10px] sm:text-xs font-mono bg-dark-700 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-dark-300 flex-shrink-0">
+                                <span className="text-[10px] sm:text-xs font-mono bg-dark-700 px-1 sm:px-1.5 py-0.5 rounded text-dark-300 flex-shrink-0">
                                   #{order.id}
                                 </span>
                                 <span className="font-medium text-white text-xs sm:text-sm truncate">
@@ -1155,14 +1155,14 @@ export function Orders() {
                                 </span>
                               </div>
 
-                              {/* Items dell'ordine - Ultra compatto */}
+                              {/* Items dell'ordine */}
                               {allOrderItems[order.id] && allOrderItems[order.id].length > 0 && (
-                                <div className="bg-dark-800 rounded p-1">
+                                <div className="bg-dark-800 rounded p-1.5">
                                   {allOrderItems[order.id].map((item) => (
-                                    <div key={item.id} className="flex items-center gap-1 text-xs leading-tight">
+                                    <div key={item.id} className="flex items-center gap-1.5 text-sm leading-snug">
                                       <span className="font-bold text-primary-400">{item.quantity}x</span>
                                       <span className="text-white truncate">{item.menu_item_name}</span>
-                                      {item.notes && <span className="text-[9px] text-amber-400">⚠️</span>}
+                                      {item.notes && <span className="text-[10px] text-amber-400">⚠️</span>}
                                     </div>
                                   ))}
                                 </div>
