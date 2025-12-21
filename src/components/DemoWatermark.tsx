@@ -15,14 +15,13 @@ export function DemoWatermark() {
 
   return (
     <>
-      {/* Desktop: banner in alto */}
-      <div className="hidden lg:block fixed top-0 left-0 right-0 z-40 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-center py-2 shadow-lg">
-        <div className="flex items-center justify-center gap-2">
+      {/* Desktop: badge in basso a sinistra (sopra la sidebar) */}
+      <div className="hidden lg:block fixed bottom-4 left-72 z-40 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 rounded-full shadow-lg">
+        <div className="flex items-center gap-2">
           <Eye className="w-4 h-4" />
           <span className="text-sm font-semibold">
-            VERSIONE DEMO - Solo visualizzazione, le modifiche non verranno salvate
+            VERSIONE DEMO - Solo visualizzazione
           </span>
-          <Eye className="w-4 h-4" />
         </div>
       </div>
 
