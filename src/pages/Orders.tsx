@@ -1399,15 +1399,16 @@ export function Orders() {
                               <span className="font-semibold text-primary-400 flex-shrink-0">{formatPrice(entry.total)}</span>
                             </div>
                             <div className="flex items-center justify-between mt-1">
-                              <div className="flex items-center gap-2 text-xs text-dark-400">
+                              <div className="flex items-center gap-2 text-xs text-dark-400 flex-wrap">
                                 <span>
                                   {new Date(entry.date).toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })}
                                 </span>
                                 <span>•</span>
                                 <span>{t(orderTypeLabelKeys[firstOrder.order_type])}</span>
                                 {entry.tableName && !isSession && <span>• {entry.tableName}</span>}
+                                {entry.customerName && <span className="text-white">• {entry.customerName}</span>}
                               </div>
-                              <span className={`text-xs px-1.5 py-0.5 rounded ${statusConfig[firstOrder.status]?.color || 'badge-secondary'}`}>
+                              <span className={`text-xs px-1.5 py-0.5 rounded flex-shrink-0 ${statusConfig[firstOrder.status]?.color || 'badge-secondary'}`}>
                                 {isSession ? (entry.sessionStatus === 'open' ? 'Aperto' : 'Chiuso') : t(statusConfig[firstOrder.status]?.labelKey)}
                               </span>
                             </div>
