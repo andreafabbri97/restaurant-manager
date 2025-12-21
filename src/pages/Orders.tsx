@@ -1138,61 +1138,49 @@ export function Orders() {
                               isExpanded ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
                             }`}
                           >
-                            <div className="px-2 sm:px-3 pb-2 sm:pb-3 space-y-1.5 sm:space-y-2">
-                              {/* Stato sessione + Totale - compatto in una riga */}
-                              <div className="flex items-center justify-between text-[10px] sm:text-xs pt-1.5 sm:pt-2 border-t border-dark-700">
+                            <div className="px-2 pb-1.5 space-y-1">
+                              {/* Stato sessione + Totale - compatto */}
+                              <div className="flex items-center justify-between text-[10px] pt-1 border-t border-dark-700">
                                 {order.session_id ? (
                                   <span className={order.session_status === 'open' ? 'text-primary-400' : 'text-emerald-400'}>
                                     {order.session_status === 'open' ? 'Conto Aperto' : 'Conto Chiuso'}
                                   </span>
                                 ) : <span />}
-                                <span className="font-bold text-primary-400 text-sm">
+                                <span className="font-bold text-primary-400 text-xs">
                                   {formatPrice(order.total)}
                                 </span>
                               </div>
 
-                              {/* Items dell'ordine - Vista Cucina compatta */}
+                              {/* Items dell'ordine - Ultra compatto */}
                               {allOrderItems[order.id] && allOrderItems[order.id].length > 0 && (
-                                <div className="bg-dark-800 rounded-lg p-1.5 sm:p-2 space-y-0.5">
+                                <div className="bg-dark-800 rounded p-1">
                                   {allOrderItems[order.id].map((item) => (
-                                    <div key={item.id} className="flex items-start gap-1 text-xs sm:text-sm">
-                                      <span className="font-bold text-primary-400 min-w-[18px]">
-                                        {item.quantity}x
-                                      </span>
-                                      <div className="flex-1 min-w-0">
-                                        <span className="text-white">{item.menu_item_name}</span>
-                                        {item.notes && (
-                                          <span className="text-[10px] text-amber-400 ml-1">⚠️ {item.notes}</span>
-                                        )}
-                                      </div>
+                                    <div key={item.id} className="flex items-center gap-1 text-xs leading-tight">
+                                      <span className="font-bold text-primary-400">{item.quantity}x</span>
+                                      <span className="text-white truncate">{item.menu_item_name}</span>
+                                      {item.notes && <span className="text-[9px] text-amber-400">⚠️</span>}
                                     </div>
                                   ))}
                                 </div>
                               )}
 
-                              {/* Note ordine - solo se presenti */}
+                              {/* Note ordine - inline */}
                               {order.notes && (
-                                <p className="text-[10px] sm:text-xs text-dark-400 bg-dark-800 px-2 py-1 rounded">
-                                  📝 {order.notes}
-                                </p>
+                                <p className="text-[9px] text-dark-400 truncate">📝 {order.notes}</p>
                               )}
 
-                              {/* Pulsanti azione - compatti */}
-                              <div className="flex items-center gap-1 pt-1">
+                              {/* Pulsanti azione - mini */}
+                              <div className="flex items-center gap-1">
                                 {config.next && (
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       handleStatusChange(order);
                                     }}
-                                    className="btn-success btn-sm flex-1 text-xs py-1.5"
+                                    className="btn-success flex-1 text-[10px] py-1 px-2 rounded"
                                   >
                                     <CheckCircle className="w-3 h-3" />
-                                    <span>{status === 'pending'
-                                      ? 'Prepara'
-                                      : status === 'preparing'
-                                      ? 'Pronto'
-                                      : 'Consegna'}</span>
+                                    <span>{status === 'pending' ? 'Prepara' : status === 'preparing' ? 'Pronto' : 'Consegna'}</span>
                                   </button>
                                 )}
                                 <button
@@ -1200,8 +1188,8 @@ export function Orders() {
                                     e.stopPropagation();
                                     openKanbanEditModal(order);
                                   }}
-                                  className="btn-secondary btn-sm p-1.5"
-                                  title="Modifica comanda"
+                                  className="btn-secondary p-1 rounded"
+                                  title="Modifica"
                                 >
                                   <Edit2 className="w-3 h-3" />
                                 </button>
