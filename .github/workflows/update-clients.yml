@@ -30,6 +30,6 @@ jobs:
 
       - name: Run update script
         env:
-          ADMIN_SUPABASE_URL: ${{ secrets.ADMIN_SUPABASE_URL }}
-          ADMIN_SUPABASE_ANON_KEY: ${{ secrets.ADMIN_SUPABASE_ANON_KEY }}
+          ADMIN_SUPABASE_URL: ${{ secrets.ADMINSUPABASEURL }}
+          ADMIN_SUPABASE_ANON_KEY: ${{ secrets.ADMINSUPABASEANONKEY }}
         run: node update-all-clients-ci.js
