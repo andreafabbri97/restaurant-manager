@@ -298,23 +298,41 @@ export function Settings() {
             </div>
             <div>
               <label className="label text-xs sm:text-sm">{t('settings.vatRate')}</label>
-              <input
-                type="number"
-                value={settings?.iva_rate || 17}
-                onChange={(e) => setSettings(s => s ? { ...s, iva_rate: parseFloat(e.target.value) || 0 } : null)}
-                className="input text-sm sm:text-base"
-                placeholder="17"
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={settings?.iva_rate ?? 17}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    // Permetti solo numeri e punto decimale
+                    if (val === '' || /^\d*\.?\d*$/.test(val)) {
+                      setSettings(s => s ? { ...s, iva_rate: val === '' ? 0 : parseFloat(val) || 0 } : null);
+                    }
+                  }}
+                  className="input text-sm sm:text-base pr-8"
+                  placeholder="17"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-dark-400">%</span>
+              </div>
             </div>
             <div>
               <label className="label text-xs sm:text-sm">{t('settings.stockThreshold')}</label>
               <input
-                type="number"
-                value={settings?.default_threshold || 10}
-                onChange={(e) => setSettings(s => s ? { ...s, default_threshold: parseFloat(e.target.value) || 10 } : null)}
+                type="text"
+                inputMode="numeric"
+                value={settings?.default_threshold ?? 10}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  // Permetti solo numeri interi
+                  if (val === '' || /^\d*$/.test(val)) {
+                    setSettings(s => s ? { ...s, default_threshold: val === '' ? 0 : parseInt(val) || 0 } : null);
+                  }
+                }}
                 className="input text-sm sm:text-base"
                 placeholder="10"
               />
+              <p className="text-xs text-dark-500 mt-1">Soglia usata per i nuovi ingredienti</p>
             </div>
           </div>
 

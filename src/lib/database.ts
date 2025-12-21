@@ -839,12 +839,16 @@ export async function getLowStockItems(): Promise<InventoryItem[]> {
 }
 
 export async function createIngredient(ingredient: Omit<Ingredient, 'id'>): Promise<Ingredient> {
+  // Ottieni la soglia di default dalle impostazioni
+  const settings = await getSettings();
+  const defaultThreshold = settings?.default_threshold ?? 10;
+
   if (isSupabaseConfigured && supabase) {
     const { data, error } = await supabase.from('ingredients').insert(ingredient).select().single();
     if (error) throw error;
 
-    // Also create inventory entry
-    await supabase.from('inventory').insert({ ingredient_id: data.id, quantity: 0, threshold: 10 });
+    // Also create inventory entry with default threshold from settings
+    await supabase.from('inventory').insert({ ingredient_id: data.id, quantity: 0, threshold: defaultThreshold });
 
     return data;
   }
@@ -852,7 +856,7 @@ export async function createIngredient(ingredient: Omit<Ingredient, 'id'>): Prom
   const inventory = getLocalData<InventoryItem[]>('inventory', []);
   const newIngredient = { ...ingredient, id: Date.now() };
   setLocalData('ingredients', [...ingredients, newIngredient]);
-  setLocalData('inventory', [...inventory, { id: Date.now() + 1, ingredient_id: newIngredient.id, quantity: 0, threshold: 10 }]);
+  setLocalData('inventory', [...inventory, { id: Date.now() + 1, ingredient_id: newIngredient.id, quantity: 0, threshold: defaultThreshold }]);
   return newIngredient;
 }
 

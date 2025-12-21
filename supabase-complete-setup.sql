@@ -2,7 +2,7 @@
 -- RESTAURANT MANAGER - SETUP COMPLETO SUPABASE
 -- ============================================
 -- Versione: 2.5.0
--- Data: Dicembre 2024
+-- Data: Dicembre 2025
 --
 -- ISTRUZIONI:
 -- 1. Vai su Supabase Dashboard > SQL Editor
