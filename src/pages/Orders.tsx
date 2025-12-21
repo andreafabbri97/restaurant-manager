@@ -1465,7 +1465,7 @@ export function Orders() {
                       </div>
                       {/* Expanded session orders */}
                       {isSession && isExpanded && (
-                        <div className="bg-dark-900/50 border-t border-dark-700">
+                        <div className="bg-dark-900/50 border-t border-dark-700 animate-fadeIn">
                           {entry.orders.map((order) => (
                             <div key={order.id} className={`px-3 py-2 border-b border-dark-800 last:border-b-0 ${selectedOrderIds.includes(order.id) ? 'bg-primary-500/10' : ''}`}>
                               <div className="flex items-center gap-2">
@@ -1749,7 +1749,7 @@ export function Orders() {
                             {isExpanded && entry.orders.map((order, idx) => (
                               <tr
                                 key={`order-${order.id}`}
-                                className={`border-l-2 border-primary-500/30 ${selectedOrderIds.includes(order.id) ? 'bg-primary-500/10' : 'bg-dark-900/30'}`}
+                                className={`border-l-2 border-primary-500/30 animate-fadeIn ${selectedOrderIds.includes(order.id) ? 'bg-primary-500/10' : 'bg-dark-900/30'}`}
                               >
                                 <td>
                                   <button
