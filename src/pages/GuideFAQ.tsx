@@ -222,13 +222,17 @@ export function GuideFAQ() {
         'Vedi tutti gli ingredienti con quantità e unità',
         'Gli ingredienti sotto scorta sono evidenziati in rosso',
         'Clicca "Aggiungi Ingrediente" per crearne uno nuovo',
-        'Usa "Carico" per registrare nuovi arrivi',
+        'Usa "Carico" per registrare nuovi arrivi (con fattura automatica opzionale)',
         'Usa "Scarico" per registrare utilizzi manuali',
+        'Clicca la campanella per impostare la soglia scorta (Manuale o EOQ)',
+        'Clicca il dollaro per modificare il costo unitario',
       ],
       tips: [
         'Controlla gli ingredienti rossi (sotto scorta) PRIMA del servizio',
         'Fai il carico appena arriva la merce, non rimandare',
         'Se l\'inventario non torna, fai uno scarico manuale per allineare i dati',
+        'Usa la modalità EOQ per far calcolare automaticamente la soglia ottimale',
+        'Configura il metodo di calcolo costo (fisso, ultimo, media) nelle impostazioni inventario',
       ],
       premium: true,
     },
@@ -611,6 +615,21 @@ export function GuideFAQ() {
     },
     {
       category: 'Inventario',
+      question: 'Cosa significa la modalità soglia "Manuale" vs "EOQ"?',
+      answer: 'Con la modalità Manuale imposti tu la soglia di scorta. Con la modalità EOQ il sistema calcola automaticamente il punto di riordino ottimale basandosi sui consumi storici. Clicca la campanella su un ingrediente per scegliere.',
+    },
+    {
+      category: 'Inventario',
+      question: 'Come cambio il metodo di calcolo del costo ingredienti?',
+      answer: 'Vai su Inventario → tab "EOQ & Riordini" → clicca su "Calcolo Costo Unitario Ingredienti". Puoi scegliere: Costo Fisso (manuale), Ultimo Acquisto, Media Ponderata o Media Mobile.',
+    },
+    {
+      category: 'Inventario',
+      question: 'L\'EOQ dice "dati insufficienti", cosa significa?',
+      answer: 'Il sistema EOQ ha bisogno di storico di consumi per calcolare le soglie. Quando avrai più ordini e forniture registrate, i calcoli EOQ diventeranno disponibili automaticamente.',
+    },
+    {
+      category: 'Inventario',
       question: 'Come creo automaticamente una fattura quando registro una fornitura?',
       answer: 'Quando fai un carico, attiva il toggle "Crea fattura automaticamente". Inserisci fornitore e numero fattura: il sistema creerà la fattura con l\'importo basato sul costo dell\'ingrediente.',
     },
@@ -936,16 +955,25 @@ export function GuideFAQ() {
                 <div className="card-body">
                   <p className="text-dark-300 mb-3">
                     Tieni sotto controllo le scorte di tutti gli ingredienti. Il sistema ti avvisa
-                    automaticamente quando qualcosa scende sotto la soglia minima che hai impostato.
+                    automaticamente quando qualcosa scende sotto la soglia minima.
+                  </p>
+                  <p className="text-dark-300 mb-3">
+                    Per ogni ingrediente puoi scegliere tra <strong>soglia manuale</strong> (la imposti tu)
+                    o <strong>soglia EOQ</strong> (calcolata automaticamente in base ai consumi). Clicca
+                    la campanella accanto all'ingrediente per cambiare modalità.
                   </p>
                   <p className="text-dark-300 mb-3">
                     Quando ricevi una fornitura, la registri qui: inserisci quantità e costo, e
                     l'inventario si aggiorna automaticamente. Puoi anche far creare automaticamente
-                    la fattura corrispondente, che apparirà nella sezione Report.
+                    la fattura corrispondente.
+                  </p>
+                  <p className="text-dark-300 mb-3">
+                    Nella sezione <strong>EOQ & Riordini</strong> trovi il calcolo automatico della quantità
+                    ottimale da ordinare, il punto di riordino e la scorta di sicurezza per ogni ingrediente.
                   </p>
                   <p className="text-dark-300">
-                    Il calcolo EOQ (Economic Order Quantity) ti suggerisce quanto ordinare per
-                    ottimizzare i costi di gestione del magazzino.
+                    Puoi anche configurare il <strong>metodo di calcolo costo</strong> degli ingredienti:
+                    costo fisso (manuale), ultimo acquisto, media ponderata o media mobile su N mesi.
                   </p>
                 </div>
               </div>

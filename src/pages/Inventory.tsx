@@ -933,7 +933,7 @@ export function Inventory() {
                   <DollarSign className="w-5 h-5 text-primary-400" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-white">Calcolo Costo Unitario</h3>
+                  <h3 className="font-semibold text-white">Calcolo Costo Unitario Ingredienti</h3>
                   <p className="text-sm text-dark-400">
                     Metodo: <span className="text-primary-400">{costMethodLabels[inventorySettings.cost_calculation_method]}</span>
                     {inventorySettings.cost_calculation_method === 'moving_avg' && (

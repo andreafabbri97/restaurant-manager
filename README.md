@@ -47,21 +47,22 @@ kebab-restaurant-app/
 │   ├── context/
 │   │   ├── AuthContext.tsx      # Autenticazione utenti
 │   │   ├── LanguageContext.tsx  # i18n (IT/EN)
+│   │   ├── LicenseContext.tsx   # Verifica licenza software
 │   │   ├── ThemeContext.tsx     # Tema chiaro/scuro
 │   │   └── NotificationContext.tsx
 │   ├── hooks/
-│   │   └── useCurrency.ts   # Formattazione prezzi
+│   │   ├── useCurrency.ts       # Formattazione prezzi
+│   │   └── usePlanFeatures.ts   # Funzionalità per piano licenza
 │   ├── lib/
 │   │   ├── database.ts      # Tutte le funzioni CRUD (Supabase + localStorage fallback)
 │   │   └── supabase.ts      # Client Supabase
-│   ├── locales/             # File traduzioni JSON (IT/EN) - DA COMPLETARE
+│   ├── locales/             # File traduzioni JSON (IT/EN)
 │   ├── pages/               # Tutte le pagine dell'app
 │   └── types/
 │       └── index.ts         # Tipi TypeScript + ROLE_PERMISSIONS
 ├── public/
 │   └── icon.svg             # Icona app (forchetta + coltello)
-├── supabase-schema.sql      # Schema database completo
-├── supabase-rls-policies.sql # Politiche RLS per sicurezza
+├── supabase-complete-setup.sql  # Schema database completo per clienti
 ├── CLIENT_SETUP.md          # Guida setup nuovi clienti
 └── vite.config.ts           # Configurazione Vite + PWA
 ```
@@ -73,24 +74,27 @@ Le tabelle principali in Supabase sono:
 | Tabella | Descrizione |
 |---------|-------------|
 | `categories` | Categorie menu (Kebab, Bevande, ecc.) |
-| `ingredients` | Ingredienti con costo unitario |
+| `ingredients` | Ingredienti con costo unitario e parametri EOQ |
 | `menu_items` | Piatti del menu con prezzo |
 | `menu_item_ingredients` | Ricette: collegamento piatti-ingredienti |
-| `inventory` | Scorte magazzino con soglie |
+| `inventory` | Scorte magazzino con soglie (manuali o EOQ) |
+| `ingredient_consumptions` | Storico consumi per calcolo EOQ |
 | `tables` | Tavoli del ristorante |
-| `orders` | Ordini (asporto, domicilio, tavolo) |
+| `orders` | Ordini (asporto, domicilio, tavolo) con tracciamento utente |
 | `order_items` | Prodotti di ogni ordine |
 | `table_sessions` | Sessioni "conto aperto" per tavoli |
-| `session_payments` | Pagamenti parziali (split bill) |
+| `session_payments` | Pagamenti parziali (split bill) con tracking items |
 | `employees` | Dipendenti |
-| `work_shifts` | Turni di lavoro |
-| `reservations` | Prenotazioni tavoli |
+| `work_shifts` | Turni di lavoro (lavorato, malattia, ferie) |
+| `reservations` | Prenotazioni tavoli (anche multi-tavolo) |
 | `expenses` | Spese generali |
 | `supplies` | Forniture ricevute |
 | `supply_items` | Dettaglio forniture |
-| `users` | Utenti sistema (login) |
+| `invoices` | Fatture fornitori |
+| `users` | Utenti sistema (login) con collegamento dipendente |
 | `cash_closures` | Chiusure cassa giornaliere |
-| `settings` | Configurazione negozio |
+| `settings` | Configurazione negozio (IVA, SMAC, lingua) |
+| `smac_cards` | Tessere fedeltà SMAC |
 
 ### Sistema di Autenticazione
 
@@ -99,39 +103,90 @@ Le tabelle principali in Supabase sono:
 - Login custom (non Supabase Auth) - password in chiaro nel DB (da migliorare)
 - Credenziali default: `admin` / `admin123`
 - Sessione salvata in localStorage (`kebab_auth_user`)
+- Tracciamento audit: ogni ordine registra chi l'ha creato/modificato
 
 ### Sistema Multilingua
 
 - Context: `src/context/LanguageContext.tsx`
-- Traduzioni: `src/locales/it.json` e `en.json` (DA COMPLETARE)
+- Traduzioni: `src/locales/it.json` e `en.json`
 - Hook: `useLanguage()` → `{ language, setLanguage, t }`
 - Persistenza: localStorage (`kebab_language`)
+
+### Sistema Licenze
+
+Il software include un sistema di verifica licenze:
+
+- **LicenseContext**: verifica la validità della licenza all'avvio
+- **Piani disponibili**: demo, standard, premium
+- **Funzionalità per piano**:
+  - DEMO: solo visualizzazione, watermark, nessuna scrittura DB
+  - STANDARD: dashboard, ordini, tavoli, menu, impostazioni
+  - PREMIUM: tutto incluso (report, inventario, staff, SMAC, ecc.)
+- Il server licenze è un Supabase separato gestito dall'admin
 
 ### Modello di Business Multi-Cliente
 
 Il software è pensato per essere venduto a più ristoranti. Strategia di deployment:
 
-1. **Ogni cliente ha il proprio account GitHub + Supabase** (free tier)
-2. Il repo principale (`andreafabbri97/restaurant-manager`) è un **Template Repository**
-3. Per nuovo cliente: fork/template → modifica `supabase.ts` con sue credenziali → deploy
+1. **Ogni cliente ha il proprio account Supabase** (free tier)
+2. L'admin gestisce le licenze da un pannello separato (`restaurant-manager-admin`)
+3. Per nuovo cliente: crea licenza → setup Supabase cliente → configura `.env` → deploy
 4. Vedere `CLIENT_SETUP.md` per istruzioni complete
 
-**Limiti Free Tier**:
-- GitHub: repo pubblico per GitHub Pages (privato richiede Pro)
-- Supabase: 500MB database, 1GB storage per progetto
+**File SQL**:
+- `supabase-complete-setup.sql` - Da dare ai clienti per setup del loro Supabase
+- `ADMIN-ONLY-licenses-setup.sql` - PRIVATO, solo per il Supabase licenze dell'admin
 
-### Problemi Noti / TODO
+### Funzionalità Principali
 
-1. **Performance "Costo Piatti"**: La pagina DishCosts.tsx è lenta perché:
-   - `calculateAllDishCosts()` fa query sequenziali per ogni piatto
-   - `getDishCostSummary()` richiama `calculateAllDishCosts()` di nuovo
-   - Soluzione: fare le query una sola volta e passare i dati
+#### Gestione Ordini
+- Ordini asporto, domicilio e al tavolo
+- Stati: in attesa, in preparazione, pronto, consegnato, annullato
+- Filtri per data, tipo, stato
+- Modifica totale per applicare sconti
+- Tracking utente che ha creato/modificato l'ordine
 
-2. **Traduzioni incomplete**: I file `src/locales/*.json` esistono ma non sono completi. La struttura del LanguageContext è pronta.
+#### Gestione Tavoli
+- Mappa tavoli con stati (disponibile, occupato, prenotato)
+- Sessioni "conto aperto" con comande multiple
+- Split bill con 3 modalità: manuale, alla romana, per consumazione
+- Tracking prodotti pagati nello split
+- Trasferimento tavolo
+- Prenotazioni multi-tavolo per gruppi
 
-3. **Password in chiaro**: Le password utente sono salvate in chiaro. Da implementare hashing.
+#### Inventario e EOQ
+- Gestione scorte con soglie alert
+- **Modalità soglia per ingrediente**: Manuale o EOQ automatico
+- Calcolo EOQ (Economic Order Quantity):
+  - Punto di riordino automatico
+  - Scorta di sicurezza
+  - Quantità ottimale da ordinare
+  - Giorni prima del riordino
+- Forniture con aggiornamento automatico costi
+- Metodi calcolo costo: fisso, ultimo, media ponderata, media mobile
 
-4. **localStorage keys**: Usano prefisso `kebab_` per retrocompatibilità (es. `kebab_auth_user`, `kebab_users`)
+#### Ricette e Costo Piatti
+- Collegamento piatti-ingredienti con quantità
+- Calcolo automatico costo ingredienti per piatto
+- Margine di profitto per piatto
+- Scarico automatico ingredienti da ordini
+
+#### Gestione Personale
+- Anagrafica dipendenti con tariffa oraria
+- Turni di lavoro con tipi: lavorato, malattia, ferie, altro
+- Collegamento utente-dipendente per audit
+- Calcolo costo del lavoro
+
+#### Chiusura Cassa
+- Riconciliazione giornaliera
+- Separazione incassi: contanti, carta, online
+- Tracking SMAC vs non-SMAC
+- Calcolo differenza cassa
+
+#### SMAC (San Marino)
+- Tracking tessere fedeltà per ordine e pagamento parziale
+- Gestione anagrafica carte SMAC
+- Report separati SMAC/non-SMAC
 
 ### Convenzioni Codice
 
@@ -158,14 +213,12 @@ npm run deploy
 npm run lint
 ```
 
-### Credenziali Supabase (Produzione)
+### TODO / Miglioramenti Futuri
 
-```
-URL: https://jhyidrhckhoavlmmmlwq.supabase.co
-Anon Key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-```
-
-(Hardcoded in `src/lib/supabase.ts` come fallback)
+1. **Hashing password**: Implementare bcrypt per le password utente
+2. **Traduzioni**: Completare i file JSON per tutte le pagine
+3. **Notifiche push**: Aggiungere notifiche browser per ordini
+4. **Report avanzati**: Export Excel, grafici comparativi
 
 ---
 
@@ -349,10 +402,10 @@ Ripeti per ogni persona. Quando il rimanente arriva a zero, il conto si chiude a
 | Ordini | Gestione ordini con stati, filtri, storico ultimi 7 giorni |
 | Tavoli | Mappa tavoli, prenotazioni, sessioni, split bill |
 | Menu | CRUD prodotti, categorie, disponibilità, export PDF |
-| Inventario | Scorte, carichi/scarichi, soglie alert, EOQ |
+| Inventario | Scorte, soglie (manuali/EOQ), forniture, calcolo costi |
 | Ricette | Collegamento piatti-ingredienti per costo e scarico automatico |
 | Costo Piatti | Margini di profitto, analisi per piatto |
-| Personale | Turni, presenze, ore lavorate |
+| Personale | Turni, presenze, ore lavorate, tipi assenza |
 | Chiusura Cassa | Riconciliazione giornaliera contanti/carte |
 | SMAC | Tracking tessere fedeltà per ordine |
 | Report | Analisi vendite, spese, profitto per periodo |
@@ -368,12 +421,14 @@ Ripeti per ogni persona. Quando il rimanente arriva a zero, il conto si chiude a
 - **Multi-dispositivo**: PC, tablet e smartphone
 - **Offline**: Fallback localStorage quando Supabase non disponibile
 - **PWA**: Installabile come app
+- **Sistema licenze**: Verifica validità e piano (demo/standard/premium)
 
 ### Sicurezza
 
 - RLS (Row Level Security) abilitato su Supabase
 - Tre livelli di accesso: Staff, Admin, Superadmin
 - Backup JSON esportabile da Impostazioni
+- Tracciamento audit su ordini (chi ha creato/modificato)
 
 ---
 
