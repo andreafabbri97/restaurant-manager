@@ -1,8 +1,18 @@
 -- ============================================
--- RESTAURANT MANAGER - SCHEMA DATABASE SUPABASE
+-- RESTAURANT MANAGER - SETUP COMPLETO SUPABASE
 -- ============================================
--- Esegui questo script nel SQL Editor di Supabase
--- Dashboard > SQL Editor > New query > Incolla e Run
+-- Versione: 2.5.0
+-- Data: Dicembre 2024
+--
+-- ISTRUZIONI:
+-- 1. Vai su Supabase Dashboard > SQL Editor
+-- 2. Clicca "New query"
+-- 3. Incolla TUTTO questo script
+-- 4. Clicca "Run"
+--
+-- NOTA: Questo è l'UNICO file SQL necessario per il setup completo.
+-- Include tutte le tabelle, colonne, indici e dati di default.
+-- ============================================
 
 -- ============== CATEGORIES ==============
 CREATE TABLE IF NOT EXISTS categories (
@@ -69,6 +79,22 @@ CREATE TABLE IF NOT EXISTS tables (
   current_order_id INTEGER
 );
 
+-- ============== TABLE SESSIONS (Conto Aperto) ==============
+CREATE TABLE IF NOT EXISTS table_sessions (
+  id SERIAL PRIMARY KEY,
+  table_id INTEGER NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
+  opened_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  closed_at TIMESTAMP WITH TIME ZONE,
+  status VARCHAR(20) NOT NULL DEFAULT 'open',
+  total DECIMAL(10, 2) NOT NULL DEFAULT 0,
+  payment_method VARCHAR(20),
+  customer_name VARCHAR(100),
+  customer_phone VARCHAR(30),
+  covers INTEGER DEFAULT 1,
+  notes TEXT,
+  smac_passed BOOLEAN DEFAULT false
+);
+
 -- ============== ORDERS ==============
 CREATE TABLE IF NOT EXISTS orders (
   id SERIAL PRIMARY KEY,
@@ -85,8 +111,11 @@ CREATE TABLE IF NOT EXISTS orders (
   customer_phone VARCHAR(30),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   -- Campi per sessione tavolo (conto aperto)
-  session_id INTEGER, -- Riferimento a table_sessions, aggiunto dopo creazione tabella
-  order_number INTEGER DEFAULT 1 -- Numero comanda nella sessione
+  session_id INTEGER REFERENCES table_sessions(id) ON DELETE SET NULL,
+  order_number INTEGER DEFAULT 1,
+  -- Campi per audit/tracciamento utente
+  created_by TEXT,
+  updated_by TEXT
 );
 
 -- ============== ORDER ITEMS ==============
@@ -97,6 +126,18 @@ CREATE TABLE IF NOT EXISTS order_items (
   quantity INTEGER NOT NULL,
   price DECIMAL(10, 2) NOT NULL,
   notes TEXT
+);
+
+-- ============== SESSION PAYMENTS (Split Bill) ==============
+CREATE TABLE IF NOT EXISTS session_payments (
+  id SERIAL PRIMARY KEY,
+  session_id INTEGER NOT NULL REFERENCES table_sessions(id) ON DELETE CASCADE,
+  amount DECIMAL(10, 2) NOT NULL,
+  payment_method VARCHAR(20) NOT NULL,
+  paid_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  notes VARCHAR(100),
+  smac_passed BOOLEAN DEFAULT false,
+  paid_items JSONB DEFAULT '[]'
 );
 
 -- ============== EMPLOYEES ==============
@@ -145,6 +186,20 @@ CREATE TABLE IF NOT EXISTS expenses (
   category VARCHAR(50)
 );
 
+-- ============== INVOICES (Fatture) ==============
+CREATE TABLE IF NOT EXISTS invoices (
+  id SERIAL PRIMARY KEY,
+  date DATE NOT NULL DEFAULT CURRENT_DATE,
+  invoice_number VARCHAR(50) NOT NULL,
+  supplier_name VARCHAR(255) NOT NULL,
+  amount DECIMAL(10, 2) NOT NULL,
+  due_date DATE,
+  paid BOOLEAN DEFAULT false,
+  paid_date DATE,
+  notes TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- ============== SUPPLIES ==============
 CREATE TABLE IF NOT EXISTS supplies (
   id SERIAL PRIMARY KEY,
@@ -167,10 +222,10 @@ CREATE TABLE IF NOT EXISTS supply_items (
 -- ============== SETTINGS ==============
 CREATE TABLE IF NOT EXISTS settings (
   id SERIAL PRIMARY KEY,
-  shop_name VARCHAR(100) DEFAULT 'Kebab San Marino',
+  shop_name VARCHAR(100) DEFAULT 'Il Mio Ristorante',
   menu_slogan TEXT,
   currency VARCHAR(10) DEFAULT '€',
-  iva_rate DECIMAL(5, 2) DEFAULT 17,
+  iva_rate DECIMAL(5, 2) DEFAULT 22,
   iva_included BOOLEAN DEFAULT true,
   default_threshold INTEGER DEFAULT 10,
   language VARCHAR(10) DEFAULT 'it',
@@ -178,12 +233,6 @@ CREATE TABLE IF NOT EXISTS settings (
   phone VARCHAR(30),
   email VARCHAR(100)
 );
-
--- Aggiungi colonne mancanti se esistono gia le tabelle
-ALTER TABLE settings ADD COLUMN IF NOT EXISTS menu_slogan TEXT;
-ALTER TABLE settings ADD COLUMN IF NOT EXISTS iva_included BOOLEAN DEFAULT true;
--- Aggiorna currency da 'EUR' a '€' per consistenza
-UPDATE settings SET currency = '€' WHERE currency = 'EUR';
 
 -- ============== USERS (per autenticazione app) ==============
 CREATE TABLE IF NOT EXISTS users (
@@ -197,9 +246,6 @@ CREATE TABLE IF NOT EXISTS users (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   last_login TIMESTAMP WITH TIME ZONE
 );
-
--- Aggiungi employee_id se la tabella esiste già
-ALTER TABLE users ADD COLUMN IF NOT EXISTS employee_id INTEGER REFERENCES employees(id) ON DELETE SET NULL;
 
 -- ============== CASH CLOSURES (Chiusura Cassa) ==============
 CREATE TABLE IF NOT EXISTS cash_closures (
@@ -222,121 +268,96 @@ CREATE TABLE IF NOT EXISTS cash_closures (
   UNIQUE(date)
 );
 
--- ============== TABLE SESSIONS (Conto Aperto) ==============
-CREATE TABLE IF NOT EXISTS table_sessions (
+-- ============== SMAC CARDS ==============
+CREATE TABLE IF NOT EXISTS smac_cards (
   id SERIAL PRIMARY KEY,
-  table_id INTEGER NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
-  opened_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  closed_at TIMESTAMP WITH TIME ZONE,
-  status VARCHAR(20) NOT NULL DEFAULT 'open',
-  total DECIMAL(10, 2) NOT NULL DEFAULT 0,
-  payment_method VARCHAR(20),
-  customer_name VARCHAR(100),
+  card_number VARCHAR(50) NOT NULL UNIQUE,
+  customer_name VARCHAR(100) NOT NULL,
   customer_phone VARCHAR(30),
-  covers INTEGER DEFAULT 1,
+  customer_email VARCHAR(100),
+  total_spent DECIMAL(10, 2) NOT NULL DEFAULT 0,
+  visit_count INTEGER NOT NULL DEFAULT 0,
+  points INTEGER NOT NULL DEFAULT 0,
   notes TEXT,
-  smac_passed BOOLEAN DEFAULT false
+  active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  last_visit TIMESTAMP WITH TIME ZONE
 );
 
--- ============== SESSION PAYMENTS (Split Bill) ==============
-CREATE TABLE IF NOT EXISTS session_payments (
-  id SERIAL PRIMARY KEY,
-  session_id INTEGER NOT NULL REFERENCES table_sessions(id) ON DELETE CASCADE,
-  amount DECIMAL(10, 2) NOT NULL,
-  payment_method VARCHAR(20) NOT NULL,
-  paid_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  notes VARCHAR(100),
-  smac_passed BOOLEAN DEFAULT false,
-  paid_items JSONB DEFAULT '[]'
-);
+-- ============================================
+-- AGGIUNGI COLONNE MANCANTI (per upgrade)
+-- ============================================
+-- Queste ALTER TABLE gestiscono il caso in cui le tabelle
+-- esistono già ma mancano alcune colonne
 
--- Aggiungi colonne se la tabella esiste già
+-- Orders: colonne audit
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS created_by TEXT;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS updated_by TEXT;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS session_id INTEGER REFERENCES table_sessions(id) ON DELETE SET NULL;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS order_number INTEGER DEFAULT 1;
+
+-- Settings: colonne aggiuntive
+ALTER TABLE settings ADD COLUMN IF NOT EXISTS menu_slogan TEXT;
+ALTER TABLE settings ADD COLUMN IF NOT EXISTS iva_included BOOLEAN DEFAULT true;
+
+-- Users: collegamento dipendente
+ALTER TABLE users ADD COLUMN IF NOT EXISTS employee_id INTEGER REFERENCES employees(id) ON DELETE SET NULL;
+
+-- Session payments: SMAC e items pagati
 ALTER TABLE session_payments ADD COLUMN IF NOT EXISTS smac_passed BOOLEAN DEFAULT false;
 ALTER TABLE session_payments ADD COLUMN IF NOT EXISTS paid_items JSONB DEFAULT '[]';
 
--- Aggiungi colonne session_id e order_number a orders (se non esistono)
--- ALTER TABLE orders ADD COLUMN IF NOT EXISTS session_id INTEGER REFERENCES table_sessions(id);
--- ALTER TABLE orders ADD COLUMN IF NOT EXISTS order_number INTEGER DEFAULT 1;
-
--- INDEX per performance sessioni
+-- ============================================
+-- INDICI PER PERFORMANCE
+-- ============================================
+CREATE INDEX IF NOT EXISTS idx_orders_date ON orders(date);
+CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
+CREATE INDEX IF NOT EXISTS idx_orders_session ON orders(session_id);
 CREATE INDEX IF NOT EXISTS idx_sessions_table_id ON table_sessions(table_id);
 CREATE INDEX IF NOT EXISTS idx_sessions_status ON table_sessions(status);
 CREATE INDEX IF NOT EXISTS idx_session_payments_session ON session_payments(session_id);
+CREATE INDEX IF NOT EXISTS idx_work_shifts_employee ON work_shifts(employee_id);
+CREATE INDEX IF NOT EXISTS idx_work_shifts_date ON work_shifts(date);
+CREATE INDEX IF NOT EXISTS idx_expenses_date ON expenses(date);
+CREATE INDEX IF NOT EXISTS idx_invoices_date ON invoices(date);
+CREATE INDEX IF NOT EXISTS idx_smac_cards_number ON smac_cards(card_number);
+
+-- ============================================
+-- ABILITA REALTIME (per notifiche live)
+-- ============================================
+-- Questo permette all'app di ricevere aggiornamenti in tempo reale
+ALTER PUBLICATION supabase_realtime ADD TABLE orders;
+ALTER PUBLICATION supabase_realtime ADD TABLE order_items;
+ALTER PUBLICATION supabase_realtime ADD TABLE tables;
+ALTER PUBLICATION supabase_realtime ADD TABLE table_sessions;
 
 -- ============================================
 -- INSERIMENTO DATI DI DEFAULT
 -- ============================================
 
--- Categorie
-INSERT INTO categories (name) VALUES
-  ('Kebab'),
-  ('Piadine'),
-  ('Bevande'),
-  ('Contorni'),
-  ('Dolci')
-ON CONFLICT DO NOTHING;
-
--- Ingredienti
-INSERT INTO ingredients (name, unit, cost, lead_time_days, order_cost, holding_cost_percent) VALUES
-  ('Carne Kebab', 'kg', 8.00, 2, 15, 20),
-  ('Pane Pita', 'pz', 0.30, 1, 10, 15),
-  ('Piadina', 'pz', 0.40, 1, 10, 15),
-  ('Insalata', 'kg', 3.00, 1, 10, 25),
-  ('Pomodori', 'kg', 2.50, 1, 10, 25),
-  ('Cipolla', 'kg', 1.50, 2, 10, 20),
-  ('Salsa Yogurt', 'l', 4.00, 2, 12, 20),
-  ('Salsa Piccante', 'l', 5.00, 3, 12, 20),
-  ('Patatine', 'kg', 2.00, 2, 15, 15),
-  ('Coca Cola 33cl', 'pz', 0.50, 3, 20, 10)
-ON CONFLICT DO NOTHING;
-
--- Menu Items
-INSERT INTO menu_items (name, category_id, price, description, available) VALUES
-  ('Kebab Classico', 1, 6.00, 'Pane pita con carne, insalata, pomodori e salsa', true),
-  ('Kebab Durum', 1, 7.00, 'Piadina arrotolata con carne e verdure', true),
-  ('Kebab Box', 1, 8.00, 'Carne kebab con patatine in box', true),
-  ('Kebab XL', 1, 9.00, 'Porzione extra large di kebab', true),
-  ('Kebab Vegetariano', 1, 6.50, 'Solo verdure e salse', true),
-  ('Piadina Kebab', 2, 6.50, 'Piadina con carne kebab', true),
-  ('Coca Cola 33cl', 3, 2.50, 'Lattina 33cl', true),
-  ('Fanta 33cl', 3, 2.50, 'Lattina 33cl', true),
-  ('Acqua 50cl', 3, 1.50, 'Bottiglia 50cl', true),
-  ('Birra 33cl', 3, 3.50, 'Bottiglia 33cl', true),
-  ('Patatine Fritte', 4, 3.00, 'Porzione di patatine', true),
-  ('Patatine Large', 4, 4.50, 'Porzione grande', true)
-ON CONFLICT DO NOTHING;
-
--- Tavoli
-INSERT INTO tables (name, capacity, status) VALUES
-  ('Tavolo 1', 4, 'available'),
-  ('Tavolo 2', 4, 'available'),
-  ('Tavolo 3', 2, 'available'),
-  ('Tavolo 4', 6, 'available'),
-  ('Tavolo 5', 4, 'available'),
-  ('Banco', 2, 'available')
-ON CONFLICT DO NOTHING;
-
--- Inventario iniziale
-INSERT INTO inventory (ingredient_id, quantity, threshold)
-SELECT id, 50, 10 FROM ingredients
-ON CONFLICT (ingredient_id) DO NOTHING;
-
--- Settings iniziali
+-- Settings iniziali (solo se tabella vuota)
 INSERT INTO settings (shop_name, currency, iva_rate, iva_included, default_threshold, language)
-VALUES ('Kebab San Marino', '€', 17, true, 10, 'it')
-ON CONFLICT DO NOTHING;
+SELECT 'Il Mio Ristorante', '€', 22, true, 10, 'it'
+WHERE NOT EXISTS (SELECT 1 FROM settings LIMIT 1);
 
--- Utente admin iniziale (password: admin123)
+-- Utente admin iniziale (password: admin123) - solo se non esiste
 INSERT INTO users (username, password, name, role, active)
-VALUES ('admin', 'admin123', 'Andrea Fabbri', 'superadmin', true)
+VALUES ('admin', 'admin123', 'Amministratore', 'superadmin', true)
 ON CONFLICT (username) DO NOTHING;
 
 -- ============================================
--- ABILITA ROW LEVEL SECURITY (opzionale)
+-- NOTA IMPORTANTE: CATEGORIE E MENU
 -- ============================================
--- Per ora lasciamo RLS disabilitato per semplicità
--- In produzione andrebbe configurato
+-- Le categorie e i piatti del menu NON vengono inseriti automaticamente.
+-- Ogni ristorante avrà il proprio menu personalizzato.
+-- L'admin può creare categorie e piatti dalla sezione "Menu" dell'app.
 
 -- ============================================
--- FINE SCRIPT
+-- FINE SCRIPT - Setup completato!
+-- ============================================
+-- Dopo aver eseguito questo script:
+-- 1. Vai su Authentication > Policies e verifica che RLS sia disabilitato
+--    (o configura le policy appropriate)
+-- 2. Copia l'URL e la anon key da Settings > API
+-- 3. Configura il file .env dell'app con questi valori
 -- ============================================
