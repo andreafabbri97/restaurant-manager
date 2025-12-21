@@ -409,6 +409,7 @@ export function Reports() {
     const labels: Record<string, string> = {
       cash: 'Contanti',
       card: 'Carta',
+      online: 'Online',
       satispay: 'Satispay',
     };
     return labels[method] || method;
