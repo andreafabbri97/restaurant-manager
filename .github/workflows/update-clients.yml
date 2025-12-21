@@ -1,0 +1,35 @@
+name: Update All Clients
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:  # Permette di lanciarlo manualmente da GitHub
+
+jobs:
+  update-clients:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install @supabase/supabase-js
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+
+      - name: Run update script
+        env:
+          ADMIN_SUPABASE_URL: ${{ secrets.ADMIN_SUPABASE_URL }}
+          ADMIN_SUPABASE_ANON_KEY: ${{ secrets.ADMIN_SUPABASE_ANON_KEY }}
+        run: node update-all-clients-ci.js
