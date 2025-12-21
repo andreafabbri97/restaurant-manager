@@ -8,7 +8,7 @@ import {
   Check,
   RefreshCw,
   ChevronDown,
-  ChevronUp,
+  ChevronRight,
 } from 'lucide-react';
 import { getOrders, getSessionPayments, updatePaymentSmac } from '../lib/database';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
@@ -208,6 +208,25 @@ export function Smac() {
       loadOrders();
     } catch (error) {
       console.error('Error updating SMAC:', error);
+      showToast('Errore nell\'aggiornamento', 'error');
+    }
+  }
+
+  // Toggle SMAC per tutti i pagamenti di un conto diviso (nella riga principale)
+  async function toggleAllPaymentsSmac(entry: GroupedSmacEntry) {
+    try {
+      // Se almeno uno non è passato, passa tutto. Altrimenti rimuovi tutto.
+      const newSmacValue = entry.smacPassed !== true;
+      for (const payment of entry.payments) {
+        await updatePaymentSmac(payment.id, newSmacValue);
+      }
+      showToast(
+        newSmacValue ? 'SMAC registrata per tutti i pagamenti' : 'SMAC rimossa da tutti i pagamenti',
+        'success'
+      );
+      loadOrders();
+    } catch (error) {
+      console.error('Error updating payments SMAC:', error);
       showToast('Errore nell\'aggiornamento', 'error');
     }
   }
@@ -419,15 +438,16 @@ export function Smac() {
                     <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
                       {/* Icona SMAC + Expand */}
                       <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-                        {isSession && (
-                          <div className="w-5 sm:w-6">
-                            {isExpanded ? (
-                              <ChevronUp className="w-4 h-4 sm:w-5 sm:h-5 text-dark-400" />
-                            ) : (
+                        {/* Spazio placeholder per allineamento (uguale per tutti) */}
+                        <div className="w-5 sm:w-6 flex items-center justify-center">
+                          {isSession ? (
+                            isExpanded ? (
                               <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-dark-400" />
-                            )}
-                          </div>
-                        )}
+                            ) : (
+                              <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-dark-400" />
+                            )
+                          ) : null}
+                        </div>
                         <div
                           className={`w-8 h-8 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center ${
                             entry.smacPassed === true
@@ -499,12 +519,15 @@ export function Smac() {
                         </p>
                       </div>
 
-                      {/* Nascondi bottone toggle per pagamenti split (non si può cambiare da qui) */}
-                      {entry.payments.length === 0 && (
+                      {/* Bottone toggle SMAC - per ordini singoli o per tutti i pagamenti di un conto diviso */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          toggleSmac(entry);
+                          if (entry.payments.length > 0) {
+                            toggleAllPaymentsSmac(entry);
+                          } else {
+                            toggleSmac(entry);
+                          }
                         }}
                         className={`p-2 sm:p-3 rounded-xl transition-all ${
                           entry.smacPassed === true
@@ -515,7 +538,6 @@ export function Smac() {
                       >
                         <Check className="w-4 h-4 sm:w-5 sm:h-5" />
                       </button>
-                      )}
                     </div>
                   </div>
 

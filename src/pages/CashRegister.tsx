@@ -521,15 +521,14 @@ export function CashRegister() {
                       </div>
                       <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
                         <p className="text-sm sm:text-lg font-bold text-primary-400 whitespace-nowrap">€{totalAmount.toFixed(2)}</p>
-                        {!hasSplitPayment && (
-                          <button
-                            onClick={() => handleViewReceipt(firstOrder.id)}
-                            className="p-1.5 sm:p-2 bg-dark-700 rounded-lg hover:bg-dark-600 transition-colors"
-                            title="Visualizza scontrino"
-                          >
-                            <Receipt className="w-4 h-4 sm:w-5 sm:h-5 text-dark-300" />
-                          </button>
-                        )}
+                        {/* Bottone scontrino - sempre visibile */}
+                        <button
+                          onClick={() => handleViewReceipt(firstOrder.id)}
+                          className="p-1.5 sm:p-2 bg-dark-700 rounded-lg hover:bg-dark-600 transition-colors"
+                          title={hasSplitPayment ? "Visualizza scontrino totale riepilogativo" : "Visualizza scontrino"}
+                        >
+                          <Receipt className="w-4 h-4 sm:w-5 sm:h-5 text-dark-300" />
+                        </button>
                       </div>
                     </div>
 
