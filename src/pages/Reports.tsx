@@ -745,7 +745,7 @@ export function Reports() {
                         verticalAlign="bottom"
                         height={36}
                         wrapperStyle={{ paddingTop: '20px' }}
-                        formatter={(value) => <span className="text-dark-700 dark:text-dark-200" style={{ fontSize: '12px' }}>{value}</span>}
+                        formatter={(value) => <span className="text-black dark:text-dark-200" style={{ fontSize: '12px' }}>{value}</span>}
                       />
                     </RechartsPieChart>
                   </ResponsiveContainer>
@@ -798,7 +798,7 @@ export function Reports() {
                         verticalAlign="bottom"
                         height={36}
                         wrapperStyle={{ paddingTop: '20px' }}
-                        formatter={(value) => <span className="text-dark-700 dark:text-dark-200" style={{ fontSize: '12px' }}>{value}</span>}
+                        formatter={(value) => <span className="text-black dark:text-dark-200" style={{ fontSize: '12px' }}>{value}</span>}
                       />
                     </RechartsPieChart>
                   </ResponsiveContainer>
