@@ -303,6 +303,13 @@ async function main() {
 
     log('\n✅ Operazione completata!\n', 'green');
 
+    // Pulizia cartella clients (file temporanei)
+    log('🧹 Pulizia file temporanei...', 'cyan');
+    if (fs.existsSync(CLIENTS_FOLDER)) {
+      fs.rmSync(CLIENTS_FOLDER, { recursive: true, force: true });
+      log('   Cartella clients svuotata', 'green');
+    }
+
   } catch (error) {
     logError(`\nErrore fatale: ${error.message}`);
     process.exit(1);
