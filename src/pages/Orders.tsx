@@ -51,7 +51,6 @@ import {
   getSessionPayments,
   addSessionPayment,
   getSessionRemainingAmount,
-  getDailyCashSummary,
   getSessionPaidQuantities,
   generatePartialReceipt,
   updateOrderItem,
@@ -140,7 +139,7 @@ export function Orders() {
   const [historyOrders, setHistoryOrders] = useState<Order[]>([]);
   const [historySessions, setHistorySessions] = useState<any[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
-  const [smacAlerts, setSmacAlerts] = useState<{ date: string; non_smac_total: number }[]>([]);
+  
   const [historyStartDate, setHistoryStartDate] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() - 7);
@@ -184,13 +183,12 @@ export function Orders() {
   const [showBillStatusModal, setShowBillStatusModal] = useState(false);
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [selectedReceipt, setSelectedReceipt] = useState<ReceiptType | null>(null);
-  const [splitMode, setSplitMode] = useState<'manual' | 'romana' | 'items'>('manual');
+  const [splitMode, setSplitMode] = useState<'manual' | 'items'>('manual');
   const [sessionPayments, setSessionPayments] = useState<SessionPayment[]>([]);
   const [remainingAmount, setRemainingAmount] = useState(0);
   const [allSessionItems, setAllSessionItems] = useState<(OrderItem & { order_number?: number })[]>([]);
   const [remainingSessionItems, setRemainingSessionItems] = useState<(OrderItem & { order_number?: number; remainingQty: number })[]>([]);
   const [selectedItems, setSelectedItems] = useState<Record<number, number>>({});
-  const [romanaForm, setRomanaForm] = useState({ totalPeople: '', payingPeople: '' });
   const [splitPaymentForm, setSplitPaymentForm] = useState({
     amount: '',
     method: 'cash' as 'cash' | 'card' | 'online',
@@ -233,29 +231,7 @@ export function Orders() {
 
   // Load recent SMAC alerts (days with non-smac revenue)
   useEffect(() => {
-    let mounted = true;
-    async function fetchSmacAlerts() {
-      try {
-        const days = 7;
-        const results: { date: string; non_smac_total: number }[] = [];
-        const promises = [] as Promise<any>[];
-        for (let i = 0; i < days; i++) {
-          const d = new Date();
-          d.setDate(d.getDate() - i);
-          const dateStr = d.toISOString().slice(0, 10);
-          promises.push(getDailyCashSummary(dateStr).then(res => ({ date: dateStr, non_smac_total: res.non_smac_total })));
-        }
-        const settled = await Promise.all(promises);
-        settled.forEach(s => {
-          if (s.non_smac_total && s.non_smac_total > 0.001) results.push(s);
-        });
-        if (mounted) setSmacAlerts(results);
-      } catch (err) {
-        console.error('Error loading SMAC alerts:', err);
-      }
-    }
-    fetchSmacAlerts();
-    return () => { mounted = false; };
+    // SMAC alerts removed from Orders page (moved to dedicated SMAC page)
   }, []);
 
   // Supabase Realtime subscription
@@ -811,7 +787,6 @@ export function Orders() {
       setSplitPaymentForm({ amount: '', method: 'cash', notes: '', smac: false });
       setSplitMode('manual');
       setSelectedItems({});
-      setRomanaForm({ totalPeople: '', payingPeople: '' });
       setChangeCalculator({ customerGives: '' });
       setPendingPaidItems([]);
 
@@ -918,25 +893,7 @@ export function Orders() {
     });
   }
 
-  function calculateRomanaAmount(): number {
-    if (!sessionToClose) return 0;
-    const totalPeople = parseInt(romanaForm.totalPeople) || 1;
-    const payingPeople = parseInt(romanaForm.payingPeople) || 1;
-    const perPersonAmount = remainingAmount / totalPeople;
-    return Math.min(perPersonAmount * payingPeople, remainingAmount);
-  }
-
-  function applyRomanaCalculation() {
-    const amount = calculateRomanaAmount();
-    if (amount > 0) {
-      setSplitPaymentForm(prev => ({
-        ...prev,
-        amount: amount.toFixed(2),
-        notes: `Alla romana (${romanaForm.payingPeople}/${romanaForm.totalPeople} persone)`
-      }));
-      setSplitMode('manual');
-    }
-  }
+  
 
   function applyItemsSelection() {
     const amount = calculateSelectedItemsTotal();
@@ -1375,25 +1332,7 @@ export function Orders() {
         </div>
       </div>
 
-      {/* SMAC Alerts: mostra giorni recenti con ricavi non SMAC */}
-      {smacAlerts && smacAlerts.length > 0 && (
-        <div className="card p-3 bg-amber-500/10 border border-amber-500/30">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium text-amber-400">Avviso SMAC</p>
-              <p className="text-sm text-dark-400">Sono presenti ricavi non SMAC nei giorni recenti:</p>
-              <div className="text-sm text-white mt-1">
-                {smacAlerts.map(a => (
-                  <span key={a.date} className="mr-3">{new Date(a.date).toLocaleDateString('it-IT')} — {formatPrice(a.non_smac_total)}</span>
-                ))}
-              </div>
-            </div>
-            <div>
-              <button onClick={() => { setActiveTab('history'); setHistoryStartDate(smacAlerts[smacAlerts.length-1].date); setHistoryEndDate(smacAlerts[0].date); setTimeout(() => loadHistoryOrders(), 0); }} className="btn-secondary">Controlla</button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* SMAC alerts removed from Orders: moved to the SMAC page */}
 
       {activeTab === 'today' && (
         <>
@@ -2896,17 +2835,7 @@ export function Orders() {
                         <Banknote className="w-4 h-4 lg:w-5 lg:h-5" />
                         <span className="text-xs lg:text-sm font-medium">Manuale</span>
                       </button>
-                      <button
-                        onClick={() => setSplitMode('romana')}
-                        className={`flex-1 p-2 lg:p-3 rounded-xl border-2 flex flex-col items-center gap-1 transition-all ${
-                          splitMode === 'romana'
-                            ? 'border-primary-500 bg-primary-500/10'
-                            : 'border-dark-700 hover:border-dark-600'
-                        }`}
-                      >
-                        <Calculator className="w-4 h-4 lg:w-5 lg:h-5" />
-                        <span className="text-xs lg:text-sm font-medium">Alla Romana</span>
-                      </button>
+                      {/* 'Alla Romana' split mode removed */}
                       <button
                         onClick={() => setSplitMode('items')}
                         className={`flex-1 p-2 lg:p-3 rounded-xl border-2 flex flex-col items-center gap-1 transition-all ${
@@ -2921,49 +2850,7 @@ export function Orders() {
                     </div>
 
                 {/* Alla Romana Calculator */}
-                {splitMode === 'romana' && (
-                  <div className="p-4 border border-primary-500/30 bg-primary-500/5 rounded-xl space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="label">Persone totali</label>
-                        <input
-                          type="number"
-                          min="1"
-                          value={romanaForm.totalPeople}
-                          onChange={(e) => setRomanaForm({ ...romanaForm, totalPeople: e.target.value })}
-                          className="input"
-                        />
-                      </div>
-                      <div>
-                        <label className="label">Pagano ora</label>
-                        <input
-                          type="number"
-                          min="1"
-                          value={romanaForm.payingPeople}
-                          onChange={(e) => setRomanaForm({ ...romanaForm, payingPeople: e.target.value })}
-                          className="input"
-                        />
-                      </div>
-                    </div>
-                    {romanaForm.totalPeople && romanaForm.payingPeople && (
-                      <div className="p-3 bg-dark-900 rounded-lg">
-                        <div className="flex justify-between items-center">
-                          <span className="text-dark-400">Totale da pagare:</span>
-                          <span className="text-primary-400 font-bold text-lg">
-                            {formatPrice(calculateRomanaAmount())}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                    <button
-                      onClick={applyRomanaCalculation}
-                      disabled={!romanaForm.totalPeople || !romanaForm.payingPeople}
-                      className="btn-primary w-full"
-                    >
-                      Applica Calcolo
-                    </button>
-                  </div>
-                )}
+                {/* 'Alla Romana' UI removed */}
 
                 {/* Per Consumazione */}
                 {splitMode === 'items' && (
