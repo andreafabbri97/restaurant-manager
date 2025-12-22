@@ -624,22 +624,44 @@ export function Orders() {
     if (!selectedOrder?.session_id) return;
 
     try {
-      // Carica tutte le comande della sessione per avere il totale corretto
+      // Carica sessione e tutte le comande della sessione
+      const session = await getTableSession(selectedOrder.session_id);
       const allSessionOrders = await getSessionOrders(selectedOrder.session_id);
-      const sessionTotal = allSessionOrders.reduce((sum, o) => sum + o.total, 0);
+
+      // Preferisci `session.total` se presente (sessione può includere coperto)
+      const sessionTotal = (session && typeof session.total === 'number')
+        ? session.total
+        : allSessionOrders.reduce((sum, o) => sum + o.total, 0);
+
+      // Se la sessione ha totale a 0, chiudi direttamente senza aprire modal coperto/pagamento
+      if (session && (session.total || 0) === 0) {
+        const confirmed = window.confirm('Vuoi chiudere questo conto a €0.00?');
+        if (confirmed) {
+          try {
+            await closeTableSession(session.id, 'cash', false, false);
+            showToast('Conto chiuso con successo', 'success');
+            // Aggiorna lista
+            loadOrdersCallback();
+            if (activeTab === 'history') loadHistoryOrders();
+          } catch (err) {
+            console.error('Error closing zero-total session from Orders:', err);
+            showToast('Errore nella chiusura del conto', 'error');
+          }
+        }
+        return;
+      }
 
       setSessionToClose({ id: selectedOrder.session_id, total: sessionTotal });
 
       // Controlla se c'è un coperto configurato e imposta lo stato della sessione
       const settings = await getSettings();
-      const session = await getTableSession(selectedOrder.session_id);
       const coverCharge = settings.cover_charge || 0;
       const covers = session?.covers || 0;
       setSessionCovers(covers);
       setSessionCoverUnitPrice(coverCharge);
 
       // Determina se il coperto è già applicato (confrontando il totale della sessione)
-      const expectedWithCover = sessionTotal + coverCharge * covers;
+      const expectedWithCover = (allSessionOrders.reduce((sum, o) => sum + o.total, 0)) + coverCharge * covers;
       const applied = Math.abs((session?.total || 0) - expectedWithCover) < 0.01 || (session?.total || 0) >= expectedWithCover - 0.01;
       setSessionIncludesCover(applied && coverCharge > 0 && covers > 0);
 
