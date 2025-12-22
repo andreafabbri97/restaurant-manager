@@ -29,6 +29,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
+import { useCurrency } from '../hooks/useCurrency';
 import {
   getTables,
   getReservations,
@@ -62,6 +63,7 @@ import type { Table, Reservation, TableSession, Order, SessionPayment, SessionPa
 export function Tables() {
   useLanguage(); // Ready for translations
   const { smacEnabled } = useSmac();
+  const { formatPrice } = useCurrency();
   const { checkCanWrite } = useDemoGuard();
   const navigate = useNavigate();
   const [tables, setTables] = useState<Table[]>([]);

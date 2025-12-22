@@ -304,7 +304,7 @@ export function NewOrder() {
   }
 
   // Esegue effettivamente l'ordine (chiamato direttamente o dopo conferma modal)
-  async function executeOrder(openSession?: boolean, sessionId?: number) {
+  async function executeOrder(openSession?: boolean, sessionId?: number, includeCover?: boolean) {
     setIsSubmitting(true);
 
     try {

@@ -167,9 +167,6 @@ export function Orders() {
 
   // Cover charge modal state (per conferma coperto prima del pagamento)
   const [showCoverChargeModal, setShowCoverChargeModal] = useState(false);
-  const [coverChargeAmount, setCoverChargeAmount] = useState(0);
-  const [coverChargeCovers, setCoverChargeCovers] = useState(0);
-  const [coverChargeUnitPrice, setCoverChargeUnitPrice] = useState(0);
   const [pendingIncludeCoverCharge, setPendingIncludeCoverCharge] = useState(true);
 
   // Split bill modal state (per dividere conti da storico)
@@ -579,7 +576,7 @@ export function Orders() {
       await updateSessionTotal(sessionId, include);
       // Aggiorna i valori locali
       const session = await getTableSession(sessionId);
-      setSessionToClose(prev => prev ? { ...prev, total: session.total } : prev);
+      setSessionToClose(prev => prev ? { ...prev, total: session?.total || prev.total } : prev);
       const remaining = await getSessionRemainingAmount(sessionId);
       setRemainingAmount(remaining);
       setSessionIncludesCover(include);
@@ -2617,9 +2614,11 @@ export function Orders() {
         <div className="space-y-4">
           <div className="text-center p-4 bg-dark-900 rounded-xl">
             <p className="text-sm text-dark-400">Coperto da applicare</p>
-            <p className="text-2xl font-bold text-primary-400">{formatPrice(coverChargeAmount)}</p>
+            <p className="text-2xl font-bold text-primary-400">
+              {formatPrice(sessionCoverUnitPrice * sessionCovers)}
+            </p>
             <p className="text-xs text-dark-500 mt-1">
-              ({coverChargeCovers} coperti × {formatPrice(coverChargeUnitPrice)})
+              ({sessionCovers} coperti × {formatPrice(sessionCoverUnitPrice)})
             </p>
           </div>
 
