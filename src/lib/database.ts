@@ -3021,7 +3021,7 @@ export async function updateSessionTotal(sessionId: number, includeCoverCharge: 
   if (isSupabaseConfigured && supabase) {
     await supabase
       .from('table_sessions')
-      .update({ total })
+      .update({ total, include_cover: includeCoverCharge })
       .eq('id', sessionId);
     return;
   }
@@ -3029,6 +3029,7 @@ export async function updateSessionTotal(sessionId: number, includeCoverCharge: 
   const index = sessions.findIndex(s => s.id === sessionId);
   if (index !== -1) {
     sessions[index].total = total;
+    sessions[index].include_cover = includeCoverCharge;
     setLocalData('table_sessions', sessions);
   }
 }
@@ -3076,6 +3077,7 @@ export async function closeTableSession(
         payment_method: paymentMethod,
         smac_passed: smacPassed,
         closed_at: new Date().toISOString(),
+        include_cover: includeCoverCharge,
       })
       .eq('id', sessionId)
       .select()
@@ -3092,6 +3094,7 @@ export async function closeTableSession(
       status: 'paid',
       payment_method: paymentMethod,
       smac_passed: smacPassed,
+      include_cover: includeCoverCharge,
       closed_at: new Date().toISOString(),
     };
     setLocalData('table_sessions', sessions);
