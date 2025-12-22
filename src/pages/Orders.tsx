@@ -2016,23 +2016,7 @@ export function Orders() {
                   )}
                 </div>
               )}
-              {/* SMAC per sessioni con pagamenti */}
-              {selectedOrder.session_id && smacEnabled && (
-                <div className="flex items-center gap-2">
-                  <p className="text-sm text-dark-400">SMAC</p>
-                  <p className="font-medium text-white text-sm px-2 py-1 rounded bg-dark-800">
-                    {(() => {
-                      const smacPayments = sessionPayments.filter(p => p.smac_passed);
-                      if (smacPayments.length === 0) return 'No';
-                      const smacTotal = smacPayments.reduce((sum, p) => sum + p.amount, 0);
-                      const sessionTotal = sessionOrders.reduce((sum, o) => sum + o.total, 0);
-                      // Se l'importo SMAC è uguale o superiore al totale, mostra "Sì (Totale)"
-                      if (smacTotal >= sessionTotal) return 'Sì (Totale)';
-                      return `Sì (${formatPrice(smacTotal)})`;
-                    })()}
-                  </p>
-                </div>
-              )}
+              {/* (SMAC info now shown inline next to Status/Payment) */}
             </div>
 
             {/* Items - Mostro tutte le comande se è una sessione con più ordini */}
