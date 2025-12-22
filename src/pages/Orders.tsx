@@ -127,6 +127,9 @@ export function Orders() {
   const [kanbanEditStatus, setKanbanEditStatus] = useState<Order['status']>('pending');
   const [kanbanEditNotes, setKanbanEditNotes] = useState('');
 
+  // Stato per animazioni fluide kanban
+  const [transitioningOrders, setTransitioningOrders] = useState<Set<number>>(new Set());
+
   // Lista Ordini tab state
   const [activeTab, setActiveTab] = useState<'today' | 'history'>('today');
   const [historyOrders, setHistoryOrders] = useState<Order[]>([]);
@@ -255,6 +258,9 @@ export function Orders() {
     const config = statusConfig[order.status];
     if (!config.next) return;
 
+    // Aggiungi l'ordine alla lista di transizione per l'animazione
+    setTransitioningOrders(prev => new Set(prev).add(order.id));
+
     try {
       await updateOrderStatus(order.id, config.next as Order['status'], user?.name);
 
@@ -281,11 +287,27 @@ export function Orders() {
         return newState;
       });
 
+      // Rimuovi dall'animazione dopo un delay per permettere la transizione
+      setTimeout(() => {
+        setTransitioningOrders(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(order.id);
+          return newSet;
+        });
+      }, 300);
+
       showToast(`Ordine #${order.id} aggiornato`, 'success');
       // Rimosso loadOrdersCallback() per evitare ricarica con animazione
     } catch (error) {
       console.error('Error updating order:', error);
       showToast('Errore nell\'aggiornamento', 'error');
+
+      // Rimuovi dall'animazione anche in caso di errore
+      setTransitioningOrders(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(order.id);
+        return newSet;
+      });
     }
   }
 
@@ -1153,7 +1175,7 @@ export function Orders() {
                       return (
                         <div
                           key={order.id}
-                          className="bg-dark-900 rounded-xl overflow-hidden"
+                          className={`bg-dark-900 rounded-xl overflow-hidden ${transitioningOrders.has(order.id) ? 'order-transitioning' : ''}`}
                         >
                           {/* Header compatto - sempre visibile */}
                           <div

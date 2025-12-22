@@ -512,3 +512,23 @@
 .light-theme .btn-icon:hover {
   background-color: #d1d5db;
 }
+
+/* Animazione per ordini in transizione nel kanban */
+.order-transitioning {
+  animation: order-move 0.3s ease-in-out;
+}
+
+@keyframes order-move {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
