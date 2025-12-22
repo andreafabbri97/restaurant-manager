@@ -1954,74 +1954,53 @@ export function Orders() {
               </div>
             )}
 
-            {/* Order Info: use 3 columns so Status + SMAC + Totale sit on same row */}
-            <div className="grid grid-cols-3 gap-4">
+            {/* Order Info: 2-column layout matching screenshot
+                Left column: Tipo, SMAC, Cliente
+                Right column: Stato, Tavolo */}
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-dark-400">{t('common.type')}</p>
-                <p className="font-medium text-white">
-                  {t(orderTypeLabelKeys[selectedOrder.order_type])}
-                </p>
+                <p className="font-medium text-white">{t(orderTypeLabelKeys[selectedOrder.order_type])}</p>
+
+                {smacEnabled && (
+                  <div className="mt-3">
+                    <p className="text-sm text-dark-400">SMAC</p>
+                    <p className="font-medium text-white text-sm px-2 py-1 rounded bg-dark-800 inline-block">
+                      {selectedOrder.session_id
+                        ? (() => {
+                            const smacPayments = sessionPayments.filter(p => p.smac_passed);
+                            if (smacPayments.length === 0) return 'No';
+                            const smacTotal = smacPayments.reduce((sum, p) => sum + p.amount, 0);
+                            const sessionTotal = sessionOrders.reduce((sum, o) => sum + o.total, 0);
+                            if (smacTotal >= sessionTotal) return 'Sì (Totale)';
+                            return `Sì (${formatPrice(smacTotal)})`;
+                          })()
+                        : (selectedOrder.smac_passed ? 'Sì' : 'No')}
+                    </p>
+                  </div>
+                )}
+
+                {selectedOrder.customer_name && (
+                  <div className="mt-3">
+                    <p className="text-sm text-dark-400">Cliente</p>
+                    <p className="font-medium text-white">{selectedOrder.customer_name}</p>
+                  </div>
+                )}
               </div>
 
-              {/* Status + SMAC inline */}
               <div>
                 <p className="text-sm text-dark-400">{t('common.status')}</p>
                 <div className="flex items-center gap-3">
-                  <span className={statusConfig[selectedOrder.status].color}>
-                    {t(statusConfig[selectedOrder.status].labelKey)}
-                  </span>
-                  {smacEnabled && (
-                    <>
-                      <span className="text-sm text-dark-400">SMAC</span>
-                      <span className="font-medium text-white text-sm px-2 py-1 rounded bg-dark-800">
-                        {selectedOrder.session_id
-                          ? (() => {
-                              const smacPayments = sessionPayments.filter(p => p.smac_passed);
-                              if (smacPayments.length === 0) return 'No';
-                              const smacTotal = smacPayments.reduce((sum, p) => sum + p.amount, 0);
-                              const sessionTotal = sessionOrders.reduce((sum, o) => sum + o.total, 0);
-                              if (smacTotal >= sessionTotal) return 'Sì (Totale)';
-                              return `Sì (${formatPrice(smacTotal)})`;
-                            })()
-                          : (selectedOrder.smac_passed ? 'Sì' : 'No')}
-                      </span>
-                    </>
-                  )}
+                  <span className={statusConfig[selectedOrder.status].color}>{t(statusConfig[selectedOrder.status].labelKey)}</span>
                 </div>
-              </div>
 
-              {/* Totale (session total if session, otherwise order total) */}
-              <div>
-                <p className="text-sm text-dark-400">Totale</p>
-                <p className="font-bold text-primary-400">
-                  {formatPrice(selectedOrder.session_id ? sessionOrders.reduce((s,o) => s + o.total, 0) : selectedOrder.total)}
-                </p>
+                {selectedOrder.table_name && (
+                  <div className="mt-3">
+                    <p className="text-sm text-dark-400">Tavolo</p>
+                    <p className="font-medium text-white">{selectedOrder.table_name}</p>
+                  </div>
+                )}
               </div>
-
-              {selectedOrder.table_name && (
-                <div>
-                  <p className="text-sm text-dark-400">Tavolo</p>
-                  <p className="font-medium text-white">{selectedOrder.table_name}</p>
-                </div>
-              )}
-              {selectedOrder.customer_name && (
-                <div>
-                  <p className="text-sm text-dark-400">Cliente</p>
-                  <p className="font-medium text-white">{selectedOrder.customer_name}</p>
-                </div>
-              )}
-              {!selectedOrder.session_id && (
-                <div>
-                  <p className="text-sm text-dark-400">Pagamento</p>
-                  <p className="font-medium text-white capitalize">
-                    {selectedOrder.payment_method === 'cash'
-                      ? 'Contanti'
-                      : selectedOrder.payment_method === 'card'
-                      ? 'Carta'
-                      : 'Online'}
-                  </p>
-                </div>
-              )}
             </div>
 
             {/* Items - Mostro tutte le comande se è una sessione con più ordini */}
