@@ -51,6 +51,7 @@ import {
   getSessionPayments,
   addSessionPayment,
   getSessionRemainingAmount,
+  getDailyCashSummary,
   getSessionPaidQuantities,
   generatePartialReceipt,
   updateOrderItem,
@@ -137,7 +138,9 @@ export function Orders() {
   // Lista Ordini tab state
   const [activeTab, setActiveTab] = useState<'today' | 'history'>('today');
   const [historyOrders, setHistoryOrders] = useState<Order[]>([]);
+  const [historySessions, setHistorySessions] = useState<any[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [smacAlerts, setSmacAlerts] = useState<{ date: string; non_smac_total: number }[]>([]);
   const [historyStartDate, setHistoryStartDate] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() - 7);
@@ -227,6 +230,33 @@ export function Orders() {
   useEffect(() => {
     loadOrdersCallback();
   }, [loadOrdersCallback]);
+
+  // Load recent SMAC alerts (days with non-smac revenue)
+  useEffect(() => {
+    let mounted = true;
+    async function fetchSmacAlerts() {
+      try {
+        const days = 7;
+        const results: { date: string; non_smac_total: number }[] = [];
+        const promises = [] as Promise<any>[];
+        for (let i = 0; i < days; i++) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          const dateStr = d.toISOString().slice(0, 10);
+          promises.push(getDailyCashSummary(dateStr).then(res => ({ date: dateStr, non_smac_total: res.non_smac_total })));
+        }
+        const settled = await Promise.all(promises);
+        settled.forEach(s => {
+          if (s.non_smac_total && s.non_smac_total > 0.001) results.push(s);
+        });
+        if (mounted) setSmacAlerts(results);
+      } catch (err) {
+        console.error('Error loading SMAC alerts:', err);
+      }
+    }
+    fetchSmacAlerts();
+    return () => { mounted = false; };
+  }, []);
 
   // Supabase Realtime subscription
   useEffect(() => {
@@ -1085,6 +1115,27 @@ export function Orders() {
       const data = await getOrdersByDateRange(historyStartDate, historyEndDate);
       setHistoryOrders(data);
       setSelectedOrderIds([]);
+      // Carica le sessioni (table_sessions) per il range richiesto
+      try {
+        if (isSupabaseConfigured && supabase) {
+          const { data: sessions } = await supabase
+            .from('table_sessions')
+            .select('*')
+            .gte('created_at', `${historyStartDate}T00:00:00`)
+            .lte('created_at', `${historyEndDate}T23:59:59`);
+          setHistorySessions(sessions || []);
+        } else {
+          const raw = localStorage.getItem('kebab_table_sessions') || '[]';
+          const sessions = JSON.parse(raw).filter((s: any) => {
+            const d = s.created_at || s.date || '';
+            return d && d.slice(0,10) >= historyStartDate && d.slice(0,10) <= historyEndDate;
+          });
+          setHistorySessions(sessions || []);
+        }
+      } catch (err) {
+        console.error('Error loading history sessions:', err);
+        setHistorySessions([]);
+      }
     } catch (error) {
       console.error('Error loading history:', error);
       showToast('Errore nel caricamento storico', 'error');
@@ -1219,6 +1270,26 @@ export function Orders() {
       });
     });
 
+    // Includi le sessioni senza comande (aperte nel range ma senza ordini)
+    if (historySessions && historySessions.length > 0) {
+      historySessions.forEach((s) => {
+        const sid = s.id || s.session_id;
+        if (!sessionMap[sid]) {
+          result.push({
+            type: 'session',
+            sessionId: Number(sid),
+            orders: [],
+            total: s.total || 0,
+            tableName: s.table_name || s.tableName,
+            customerName: s.customer_name || s.customerName,
+            date: s.created_at || s.date || new Date().toISOString(),
+            createdAt: s.created_at || s.date || new Date().toISOString(),
+            sessionStatus: s.status || 'open',
+          });
+        }
+      });
+    }
+
     // Ordina per data/ora di creazione (più recenti prima)
     return result.sort((a, b) =>
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -1303,6 +1374,26 @@ export function Orders() {
           </Link>
         </div>
       </div>
+
+      {/* SMAC Alerts: mostra giorni recenti con ricavi non SMAC */}
+      {smacAlerts && smacAlerts.length > 0 && (
+        <div className="card p-3 bg-amber-500/10 border border-amber-500/30">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-amber-400">Avviso SMAC</p>
+              <p className="text-sm text-dark-400">Sono presenti ricavi non SMAC nei giorni recenti:</p>
+              <div className="text-sm text-white mt-1">
+                {smacAlerts.map(a => (
+                  <span key={a.date} className="mr-3">{new Date(a.date).toLocaleDateString('it-IT')} — {formatPrice(a.non_smac_total)}</span>
+                ))}
+              </div>
+            </div>
+            <div>
+              <button onClick={() => { setActiveTab('history'); setHistoryStartDate(smacAlerts[smacAlerts.length-1].date); setHistoryEndDate(smacAlerts[0].date); setTimeout(() => loadHistoryOrders(), 0); }} className="btn-secondary">Controlla</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {activeTab === 'today' && (
         <>
