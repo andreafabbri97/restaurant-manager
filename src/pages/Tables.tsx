@@ -57,7 +57,7 @@ import { Modal } from '../components/ui/Modal';
 import { useLanguage } from '../context/LanguageContext';
 import { useSmac } from '../context/SmacContext';
 import { useDemoGuard } from '../hooks/useDemoGuard';
-import type { Table, Reservation, TableSession, Order, SessionPayment, SessionPaymentItem, OrderItem, Receipt as ReceiptType } from '../types';
+import type { Table, Reservation, TableSession, Order, SessionPayment, SessionPaymentItem, OrderItem, Receipt as ReceiptType, Settings } from '../types';
 
 export function Tables() {
   useLanguage(); // Ready for translations
@@ -112,6 +112,9 @@ export function Tables() {
     customer_name: '',
     customer_phone: '',
   });
+  const [settings, setSettings] = useState<Settings | null>(null);
+  // Open session: whether to apply cover when creating a new session
+  const [openSessionApplyCover, setOpenSessionApplyCover] = useState<boolean>(false);
   const [paymentForm, setPaymentForm] = useState({
     method: 'cash' as 'cash' | 'card' | 'online',
     smac: false,
@@ -164,14 +167,17 @@ export function Tables() {
 
   async function loadData() {
     try {
-      const [tablesData, reservationsData, sessionsData] = await Promise.all([
+      const [tablesData, reservationsData, sessionsData, setts] = await Promise.all([
         getTables(),
         getReservations(selectedDate),
         getActiveSessions(),
+        getSettings(),
       ]);
       setTables(tablesData);
       setReservations(reservationsData);
       setActiveSessions(sessionsData);
+      setSettings(setts);
+      setOpenSessionApplyCover((setts?.cover_charge || 0) > 0);
     } catch (error) {
       console.error('Error loading data:', error);
       showToast('Errore nel caricamento dati', 'error');
@@ -538,12 +544,22 @@ export function Tables() {
     if (!selectedTableId) return;
 
     try {
-      await createTableSession(
+      const session = await createTableSession(
         selectedTableId,
         parseInt(sessionForm.covers) || 1,
         sessionForm.customer_name || undefined,
         sessionForm.customer_phone || undefined
       );
+
+      // Applica il coperto se selezionato e se è configurato
+      if (openSessionApplyCover && session && session.id) {
+        try {
+          await updateSessionTotal(session.id, true);
+        } catch (err) {
+          console.error('Error applying cover on new session:', err);
+        }
+      }
+
       showToast('Conto aperto', 'success');
       setShowOpenSessionModal(false);
       loadData();
@@ -1530,6 +1546,22 @@ export function Tables() {
               placeholder="+39..."
             />
           </div>
+
+          {/* Checkbox applica coperto: mostra solo se impostato coperto nelle settings */}
+          {settings && (settings.cover_charge || 0) > 0 && (
+            <div className="flex items-center gap-3">
+              <input
+                id="open_session_apply_cover_tables"
+                type="checkbox"
+                checked={openSessionApplyCover}
+                onChange={(e) => setOpenSessionApplyCover(e.target.checked)}
+                className="w-5 h-5"
+              />
+              <label htmlFor="open_session_apply_cover_tables" className="text-white text-sm">
+                Applica coperto ({formatPrice ? formatPrice(settings.cover_charge) : settings.cover_charge} / ospite)
+              </label>
+            </div>
+          )}
 
           <div className="flex items-center gap-3 pt-4">
             <button onClick={handleOpenSession} className="btn-primary flex-1">
