@@ -1,4 +1,6 @@
-      <SplitModal
+export function Tables() {
+  return (
+    <SplitModal
         isOpen={showSplitModal}
         onClose={() => setShowSplitModal(false)}
         session={selectedSession ? { id: selectedSession.id, total: selectedSession.total } : null}
@@ -27,26 +29,8 @@
         onPrintPaymentReceipt={handlePrintPaymentReceipt}
         formatPrice={formatPrice}
       />
-      // Tavolo con conto aperto -> mostra dettagli sessione
-      openSessionDetails(session);
-    } else if (status === 'available' || status === 'reserved') {
-      // Tavolo libero o prenotato -> apri modal per aprire conto
-      // Se prenotato, pre-compila con i dati della prenotazione
-      setSelectedTableId(tableId);
-      if (reservation) {
-        setSessionForm({
-          covers: reservation.guests?.toString() || '2',
-          customer_name: reservation.customer_name || '',
-          customer_phone: reservation.phone || '',
-        });
-      } else {
-        setSessionForm({ covers: '2', customer_name: '', customer_phone: '' });
-      }
-      setShowOpenSessionModal(true);
-    }
-  }
-
-  async function openSessionDetails(session: TableSession) {
+      {/* Tables Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-2 sm:gap-4">
     try {
       // Aggiorna il totale prima di mostrare
       await updateSessionTotal(session.id);
@@ -579,6 +563,27 @@
       </div>
     );
   }
+
+  const handleTableClick = (tableId: number) => {
+    const status = getTableStatus(tableId);
+    const session = getTableSession(tableId);
+    const reservation = getTableReservation(tableId);
+    if (status === 'occupied') {
+      openSessionDetails(session);
+    } else if (status === 'available' || status === 'reserved') {
+      setSelectedTableId(tableId);
+      if (reservation) {
+        setSessionForm({
+          covers: reservation.guests?.toString() || '2',
+          customer_name: reservation.customer_name || '',
+          customer_phone: reservation.phone || '',
+        });
+      } else {
+        setSessionForm({ covers: '2', customer_name: '', customer_phone: '' });
+      }
+      setShowOpenSessionModal(true);
+    }
+  };
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -2120,3 +2125,5 @@
     </div>
   );
 }
+
+export default Tables;
