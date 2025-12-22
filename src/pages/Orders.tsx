@@ -258,6 +258,9 @@ export function Orders() {
     try {
       await updateOrderStatus(order.id, config.next as Order['status'], user?.name);
 
+      // Aggiorna lo stato locale invece di ricaricare
+      setOrders(prev => prev.map(o => o.id === order.id ? { ...o, status: config.next as Order['status'] } : o));
+
       // Sposta lo stato espanso dalla vecchia colonna alla nuova
       setExpandedByColumn(prev => {
         const newState = { ...prev };
@@ -276,7 +279,7 @@ export function Orders() {
       });
 
       showToast(`Ordine #${order.id} aggiornato`, 'success');
-      loadOrdersCallback();
+      // Rimosso loadOrdersCallback() per evitare ricarica con animazione
     } catch (error) {
       console.error('Error updating order:', error);
       showToast('Errore nell\'aggiornamento', 'error');
