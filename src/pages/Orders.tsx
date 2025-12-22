@@ -1517,17 +1517,13 @@ export function Orders() {
                             <Eye className="w-3.5 h-3.5" />
                             Dettagli
                           </button>
-                          {!isSession && (
-                            <>
-                              <button onClick={(e) => { e.stopPropagation(); openEditModal(firstOrder); }} className="btn-secondary btn-sm flex-1 justify-center text-xs">
-                                <Edit2 className="w-3.5 h-3.5" />
-                                Modifica
-                              </button>
-                              <button onClick={(e) => { e.stopPropagation(); handleDelete(firstOrder.id, firstOrder.session_id); }} className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg">
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </>
-                          )}
+                          <button onClick={(e) => { e.stopPropagation(); openEditModal(firstOrder); }} className="btn-secondary btn-sm flex-1 justify-center text-xs">
+                            <Edit2 className="w-3.5 h-3.5" />
+                            Modifica
+                          </button>
+                          <button onClick={(e) => { e.stopPropagation(); handleDelete(firstOrder.id, firstOrder.session_id); }} className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
                       </div>
                       {/* Expanded session orders */}
@@ -1550,6 +1546,33 @@ export function Orders() {
                                 <span className={`${statusConfig[order.status]?.color || 'badge-secondary'} text-[10px]`}>
                                   {t(statusConfig[order.status]?.labelKey)}
                                 </span>
+                              </div>
+
+                              {/* Action buttons for child orders (mobile) */}
+                              <div className="flex items-center gap-2 mt-2">
+                                <button
+                                  onClick={() => viewOrderDetails(order)}
+                                  className="btn-ghost btn-sm px-3 py-2 flex-1"
+                                  title="Visualizza comanda"
+                                >
+                                  <Eye className="w-4 h-4" />
+                                  <span className="ml-2 text-xs">Dettagli</span>
+                                </button>
+                                <button
+                                  onClick={() => openKanbanEditModal(order)}
+                                  className="btn-ghost btn-sm px-3 py-2 flex-1"
+                                  title="Modifica comanda"
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                  <span className="ml-2 text-xs">Modifica</span>
+                                </button>
+                                <button
+                                  onClick={() => handleDelete(order.id, order.session_id)}
+                                  className="btn-ghost btn-sm px-3 py-2 text-red-400 hover:text-red-300"
+                                  title="Elimina"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
                               </div>
                             </div>
                           ))}
