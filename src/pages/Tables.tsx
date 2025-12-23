@@ -213,6 +213,12 @@ export function Tables() {
     setShowTableModal(true);
   }
 
+  // Open reservation modal directly (from header)
+  function openReservationModalDirect() {
+    setReservationForm({ ...reservationForm, date: selectedDate });
+    setShowReservationModal(true);
+  }
+
   async function handleDeleteTable(id: number) {
     try {
       await deleteTable(id);
@@ -1020,7 +1026,7 @@ export function Tables() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white">Tavoli</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">Tavoli e Prenotazioni</h1>
           <p className="text-dark-400 mt-1 text-sm sm:text-base">Gestisci tavoli e prenotazioni</p>
         </div>
         <div className="flex items-center gap-2 sm:gap-3">
