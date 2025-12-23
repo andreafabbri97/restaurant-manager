@@ -97,7 +97,7 @@ export function Orders() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   
   const [showDetails, setShowDetails] = useState(false);
-  const [isRealtimeConnected] = useState(false);
+  const [isRealtimeConnected, setIsRealtimeConnected] = useState(false);
 
   // Mappa degli items per ogni ordine (per vista cucina)
   const [allOrderItems] = useState<Record<number, OrderItem[]>>({});
@@ -222,6 +222,39 @@ export function Orders() {
       window.addEventListener('orders-updated', handler);
       return () => window.removeEventListener('orders-updated', handler);
     }, [loadOrdersCallback]);
+
+    // Supabase realtime subscription for orders (keeps kanban in sync)
+    useEffect(() => {
+      if (!isSupabaseConfigured || !supabase) return;
+
+      let chan: any = null;
+      try {
+        chan = supabase
+          .channel('orders-realtime')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (_payload: any) => {
+            // Trigger existing refresh mechanism
+            window.dispatchEvent(new CustomEvent('orders-updated'));
+          });
+
+        // Subscribe
+        Promise.resolve(chan.subscribe()).then(() => setIsRealtimeConnected(true)).catch(() => setIsRealtimeConnected(false));
+      } catch (err) {
+        console.error('Realtime subscribe error:', err);
+        setIsRealtimeConnected(false);
+      }
+
+      return () => {
+        try {
+          if (chan) {
+            // unsubscribe if supported
+            chan.unsubscribe && chan.unsubscribe();
+          }
+        } catch (err) {
+          // ignore
+        }
+        setIsRealtimeConnected(false);
+      };
+    }, []);
 
   // ========== STORICO ORDINI ==========
   async function loadHistoryOrders() {
