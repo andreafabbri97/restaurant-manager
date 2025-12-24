@@ -727,18 +727,7 @@ export function Tables() {
     });
   }
 
-  // Applica calcolatore alla romana
-  function applyRomanaCalculation() {
-    const amount = calculateRomanaAmount();
-    if (amount > 0) {
-      setSplitPaymentForm((prev: any) => ({
-        ...prev,
-        amount: amount.toFixed(2),
-        notes: `Alla romana (${romanaForm.payingPeople}/${romanaForm.totalPeople} persone)`
-      }));
-      setSplitMode('manual');
-    }
-  }
+  // Nota: il calcolatore "Alla Romana" è applicato inline quando necessario.
 
   // Stato per memorizzare gli items selezionati per il pagamento corrente
 
