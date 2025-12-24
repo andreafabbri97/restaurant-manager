@@ -1050,8 +1050,7 @@ export function Tables() {
                     <Users className="w-3 h-3" />
                     {reservation.guests} coperti
                   </p>
-                  <p className="font-semibold text-base sm:text-lg">{reservation.time || 'Prenotato'}</p>
-                  <p className="truncate text-dark-300">Prenotato</p>
+                  <p className="font-semibold text-base sm:text-lg">{reservation.time || ''}</p>
                 </div>
               )}
 
