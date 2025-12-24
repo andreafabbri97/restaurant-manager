@@ -2778,31 +2778,37 @@ export function Orders() {
           <div className="space-y-4">
             {/* Summary + Progress - Compatto */}
             <div className="p-3 bg-dark-900 rounded-xl">
-              <div className="grid grid-cols-3 gap-4 mb-3">
-                <div className="text-center">
-                  <p className="text-xs text-dark-400">Totale</p>
-                  <p className="text-base lg:text-lg font-bold text-white">{formatPrice(sessionToClose.total)}</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-xs text-dark-400">Pagato</p>
-                  <p className="text-base lg:text-lg font-bold text-emerald-400">
-                    {formatPrice(sessionToClose.total - remainingAmount)}
-                  </p>
-                </div>
-                <div className="text-center">
-                  <p className="text-xs text-dark-400">Rimanente</p>
-                  <p className="text-base lg:text-lg font-bold text-primary-400">{formatPrice(remainingAmount)}</p>
-                </div>
-              </div>
-              {/* Progress Bar */}
-              {sessionToClose.total > 0 && (
-                <div className="w-full bg-dark-700 rounded-full h-2">
-                  <div
-                    className="bg-gradient-to-r from-emerald-500 to-emerald-400 h-2 rounded-full transition-all duration-500"
-                    style={{ width: `${Math.min(100, ((sessionToClose.total - remainingAmount) / sessionToClose.total) * 100)}%` }}
-                  />
-                </div>
-              )}
+              {(() => {
+                const coverTotal = (coverSelectedCount || 0) * (sessionCoverUnitPrice || 0);
+                const paidSum = (sessionPayments || []).reduce((s, p) => s + (p.amount || 0), 0);
+                const totalPreview = (sessionToClose.total || 0) + coverTotal;
+                const remainingPreview = Math.max(0, totalPreview - paidSum);
+                const progressPct = totalPreview > 0 ? Math.min(100, (paidSum / totalPreview) * 100) : 0;
+                return (
+                  <>
+                    <div className="grid grid-cols-3 gap-4 mb-3">
+                      <div className="text-center">
+                        <p className="text-xs text-dark-400">Totale</p>
+                        <p className="text-base lg:text-lg font-bold text-white">{formatPrice(totalPreview)}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs text-dark-400">Pagato</p>
+                        <p className="text-base lg:text-lg font-bold text-emerald-400">{formatPrice(paidSum)}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs text-dark-400">Rimanente</p>
+                        <p className="text-base lg:text-lg font-bold text-primary-400">{formatPrice(remainingPreview)}</p>
+                      </div>
+                    </div>
+                    <div className="w-full bg-dark-700 rounded-full h-2">
+                      <div
+                        className="bg-gradient-to-r from-emerald-500 to-emerald-400 h-2 rounded-full transition-all duration-500"
+                        style={{ width: `${progressPct}%` }}
+                      />
+                    </div>
+                  </>
+                );
+              })()}
             </div>
 
             {/* Desktop: 2 colonne - Pagamenti a sinistra, Opzioni a destra */}
