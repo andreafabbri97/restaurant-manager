@@ -55,6 +55,7 @@ import {
   deleteOrderItem,
   recalculateOrderTotal,
   deleteTableSession,
+  setSessionTotal,
 } from '../lib/database';
 import { showToast } from '../components/ui/Toast';
 import { Modal } from '../components/ui/Modal';
