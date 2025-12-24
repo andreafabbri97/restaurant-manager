@@ -101,6 +101,7 @@ export function Orders() {
 
   // Mappa degli items per ogni ordine (per vista cucina)
   const [allOrderItems, setAllOrderItems] = useState<Record<string, OrderItem[]>>({});
+  const [allOrderItemsLoading, setAllOrderItemsLoading] = useState<Record<string, boolean>>({});
   // Card espanse per ogni colonna Kanban (multiple per colonna)
   const [expandedByColumn, setExpandedByColumn] = useState<Record<string, Set<number>>>({
     pending: new Set(),
@@ -1259,16 +1260,13 @@ export function Orders() {
                     statusOrders.map((order) => {
                       const isExpanded = expandedByColumn[status]?.has(order.id) || false;
                       const toggleExpand = async () => {
-                        let willExpand = false;
+                        // Compute desired expansion based on current state to avoid closure race
+                        const currentlyExpanded = expandedByColumn[status]?.has(order.id) || false;
+                        const willExpand = !currentlyExpanded;
+
                         setExpandedByColumn(prev => {
                           const newSet = new Set(prev[status] || []);
-                          if (newSet.has(order.id)) {
-                            newSet.delete(order.id);
-                            willExpand = false;
-                          } else {
-                            newSet.add(order.id);
-                            willExpand = true;
-                          }
+                          if (willExpand) newSet.add(order.id); else newSet.delete(order.id);
                           return { ...prev, [status]: newSet };
                         });
 
@@ -1276,6 +1274,7 @@ export function Orders() {
                         const key = String(order.id);
                         if (willExpand && !(allOrderItems[key] && allOrderItems[key].length > 0)) {
                           try {
+                            setAllOrderItemsLoading(prev => ({ ...prev, [key]: true }));
                             console.debug('Orders: expanding', order.id, 'status', status, 'session_id', order.session_id);
                             let items = await getOrderItems(order.id);
 
@@ -1295,6 +1294,8 @@ export function Orders() {
                           } catch (err) {
                             console.error('Error loading order items for expand:', err);
                             setAllOrderItems(prev => ({ ...prev, [key]: [] }));
+                          } finally {
+                            setAllOrderItemsLoading(prev => ({ ...prev, [key]: false }));
                           }
                         }
                       };
@@ -1349,7 +1350,9 @@ export function Orders() {
                           >
                             <div className="px-2 pb-1.5 space-y-1">
                               {/* Items dell'ordine con note piatto visibili */}
-                              {allOrderItems[String(order.id)] && allOrderItems[String(order.id)].length > 0 && (
+                              {allOrderItemsLoading[String(order.id)] ? (
+                                <div className="py-2 text-center text-sm text-dark-400">Caricamento…</div>
+                              ) : allOrderItems[String(order.id)] && allOrderItems[String(order.id)].length > 0 ? (
                                 <div className="bg-dark-800 rounded p-1.5 mt-1">
                                   {allOrderItems[String(order.id)].map((item) => (
                                     <div key={item.id} className="leading-snug mb-1 last:mb-0">
@@ -1363,7 +1366,7 @@ export function Orders() {
                                     </div>
                                   ))}
                                 </div>
-                              )}
+                              ) : null}
 
                               {/* Note ordine - inline */}
                               {order.notes && (
