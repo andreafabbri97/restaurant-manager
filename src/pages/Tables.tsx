@@ -130,7 +130,7 @@ export function Tables() {
     notes: '',
     table_ids: [] as number[],
   });
-  const [editingTable] = useState<Table | null>(null);
+  const [editingTable, setEditingTable] = useState<Table | null>(null);
   const [editingReservation, setEditingReservation] = useState<Reservation | null>(null);
 
   const [selectedTableId, setSelectedTableId] = useState<number | null>(null);
@@ -240,8 +240,13 @@ export function Tables() {
   }
 
   function openTableModal(table?: Table) {
-    if (table) setTableForm({ name: table.name, capacity: table.capacity });
-    else setTableForm({ name: '', capacity: 1 });
+    if (table) {
+      setTableForm({ name: table.name, capacity: table.capacity });
+      setEditingTable(table);
+    } else {
+      setTableForm({ name: '', capacity: 1 });
+      setEditingTable(null);
+    }
     setShowTableModal(true);
   }
 
@@ -273,14 +278,15 @@ export function Tables() {
 
   async function handleSaveTable() {
     try {
-      if ((editingTable as any)) {
-        await updateTable((editingTable as any).id, tableForm);
+      if (editingTable) {
+        await updateTable(editingTable.id, tableForm);
         showToast('Tavolo aggiornato', 'success');
       } else {
         await createTable({ name: tableForm.name, capacity: tableForm.capacity });
         showToast('Tavolo creato', 'success');
       }
       setShowTableModal(false);
+      setEditingTable(null);
       await loadData();
     } catch (err) {
       console.error(err);
@@ -1075,15 +1081,6 @@ export function Tables() {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    openTableModal(table);
-                  }}
-                  className="p-1 bg-dark-800 rounded hover:bg-dark-700"
-                >
-                  <Edit2 className="w-3 h-3" />
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
                     // Apri modal con le prenotazioni della giornata per questo tavolo
                     viewTableReservations(table.id);
                   }}
@@ -1091,6 +1088,15 @@ export function Tables() {
                   title="Visualizza prenotazioni"
                 >
                   <FileText className="w-3 h-3" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openTableModal(table);
+                  }}
+                  className="p-1 bg-dark-800 rounded hover:bg-dark-700"
+                >
+                  <Edit2 className="w-3 h-3" />
                 </button>
                 <button
                   onClick={(e) => {
@@ -1190,7 +1196,7 @@ export function Tables() {
       {/* Table Modal */}
       <Modal
         isOpen={showTableModal}
-        onClose={() => setShowTableModal(false)}
+        onClose={() => { setShowTableModal(false); setEditingTable(null); }}
         title={editingTable ? 'Modifica Tavolo' : 'Nuovo Tavolo'}
         size="sm"
       >
