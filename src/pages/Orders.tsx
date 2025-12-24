@@ -1809,6 +1809,18 @@ export function Orders() {
                         </div>
                       )}
                     </div>
+                    <div className="flex gap-2 mt-2">
+                      <button
+                        onClick={() => {
+                          const covers = sessionCovers || 1;
+                          const amt = (sessionToClose?.total ?? 0) / covers;
+                          setSplitPaymentForm(prev => ({ ...prev, amount: amt.toFixed(2), notes: `Alla romana (${covers} pers.)` }));
+                        }}
+                        className="px-3 py-1 text-sm bg-dark-800 hover:bg-dark-700 rounded-lg transition-colors"
+                      >
+                        Alla Romana (€{sessionToClose ? (sessionToClose.total / (sessionCovers || 1)).toFixed(2) : '0.00'})
+                      </button>
+                    </div>
                   );
                 })
               )}

@@ -85,7 +85,7 @@ export function Tables() {
   const [sessionCovers, setSessionCovers] = useState(0);
   const [sessionCoverUnitPrice, setSessionCoverUnitPrice] = useState(0);
   const [sessionIncludesCover, setSessionIncludesCover] = useState(false);
-  const [splitMode, setSplitMode] = useState<'manual' | 'items' | 'romana'>('manual');
+  const [splitMode, setSplitMode] = useState<'manual' | 'items'>('manual');
   interface SplitPaymentForm {
     paymentMethod: 'cash' | 'card' | 'online';
     method?: 'cash' | 'card' | 'online';
@@ -2011,17 +2011,6 @@ export function Tables() {
                     <span className="text-sm font-medium">Manuale</span>
                   </button>
                   <button
-                    onClick={() => setSplitMode('romana')}
-                    className={`flex-1 p-3 rounded-xl border-2 flex flex-col items-center gap-1 transition-all ${
-                      splitMode === 'romana'
-                        ? 'border-primary-500 bg-primary-500/10'
-                        : 'border-dark-700 hover:border-dark-600'
-                    }`}
-                  >
-                    <Calculator className="w-5 h-5" />
-                    <span className="text-sm font-medium">Alla Romana</span>
-                  </button>
-                  <button
                     onClick={() => setSplitMode('items')}
                     className={`flex-1 p-3 rounded-xl border-2 flex flex-col items-center gap-1 transition-all ${
                       splitMode === 'items'
@@ -2033,67 +2022,6 @@ export function Tables() {
                     <span className="text-sm font-medium">Per Consumazione</span>
                   </button>
                 </div>
-
-                {/* Alla Romana Calculator */}
-                {splitMode === 'romana' && (
-                  <div className="p-4 border border-primary-500/30 bg-primary-500/5 rounded-xl space-y-4">
-                    <h4 className="font-medium text-white flex items-center gap-2">
-                      <Calculator className="w-4 h-4 text-primary-400" />
-                      Dividi alla Romana
-                    </h4>
-                    <p className="text-sm text-dark-400">
-                      Dividi il conto equamente tra le persone. Specifica quante persone stanno pagando ora.
-                    </p>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="label">Persone totali al tavolo</label>
-                        <input
-                          type="number"
-                          min="1"
-                          value={romanaForm.totalPeople}
-                          onChange={(e) => setRomanaForm({ ...romanaForm, totalPeople: e.target.value })}
-                          className="input"
-                          placeholder={selectedSession?.covers?.toString() ?? ''}
-                        />
-                      </div>
-                      <div>
-                        <label className="label">Persone che pagano ora</label>
-                        <input
-                          type="number"
-                          min="1"
-                          max={romanaForm.totalPeople}
-                          value={romanaForm.payingPeople}
-                          onChange={(e) => setRomanaForm({ ...romanaForm, payingPeople: e.target.value })}
-                          className="input"
-                          placeholder="Es. 2"
-                        />
-                      </div>
-                    </div>
-                    {romanaForm.totalPeople && romanaForm.payingPeople && (
-                      <div className="p-3 bg-dark-900 rounded-lg">
-                        <div className="flex justify-between items-center">
-                          <span className="text-dark-400">Quota per persona:</span>
-                          <span className="text-white font-medium">
-                            €{(remainingAmount / (parseInt(romanaForm.totalPeople) || 1)).toFixed(2)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center mt-2">
-                          <span className="text-dark-400">Totale da pagare ({romanaForm.payingPeople} pers.):</span>
-                          <span className="text-primary-400 font-bold text-lg">
-                            €{calculateRomanaAmount().toFixed(2)}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                    <button
-                      onClick={applyRomanaCalculation}
-                      disabled={!romanaForm.totalPeople || !romanaForm.payingPeople}
-                      className="btn-primary w-full"
-                    >
-                      Applica Calcolo
-                    </button>
-                  </div>
-                )}
 
                 {/* Per Consumazione - Item Selection con quantità parziali */}
                 {splitMode === 'items' && (
@@ -2154,6 +2082,16 @@ export function Tables() {
                                   {/* Controlli +/- */}
                                   <div className="flex items-center gap-1 bg-dark-800 rounded-lg p-1">
                                     <button
+                                    <button
+                                      onClick={() => {
+                                        const covers = (selectedSession?.covers ?? sessionCovers) || 1;
+                                        const amt = (selectedSession?.total ?? 0) / covers;
+                                        setSplitPaymentForm({ ...splitPaymentForm, amount: amt.toFixed(2), notes: `Alla romana (${covers} pers.)` });
+                                      }}
+                                      className="px-3 py-1 text-sm bg-dark-800 hover:bg-dark-700 rounded-lg transition-colors"
+                                    >
+                                      Alla Romana (€{(selectedSession?.total ? (selectedSession.total / ((selectedSession?.covers ?? sessionCovers) || 1)).toFixed(2) : '0.00')})
+                                    </button>
                                       onClick={() => decrementItemSelection(item.id)}
                                       disabled={selectedQty === 0}
                                       className="w-8 h-8 rounded-lg bg-dark-700 hover:bg-dark-600 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
