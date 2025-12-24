@@ -1024,7 +1024,7 @@ export function Tables() {
                 ${status === 'available' ? 'table-available cursor-pointer hover:scale-105' : ''}
                 ${status === 'occupied' ? 'table-occupied cursor-pointer hover:scale-105' : ''}
                 ${status === 'reserved' ? 'table-reserved cursor-pointer hover:scale-105' : ''}
-                p-3 sm:p-4 transition-transform
+                transform scale-90 p-3 sm:p-3 transition-transform
               `}
             >
               <h3 className="text-base sm:text-lg font-bold">{table.name}</h3>
@@ -1077,35 +1077,36 @@ export function Tables() {
               )}
 
               {/* Edit/Delete on hover */}
-              <div className="absolute top-1 right-1 sm:top-2 sm:right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="absolute top-1 right-1 sm:top-2 sm:right-2 flex gap-2 transition-colors">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    // Apri modal con le prenotazioni della giornata per questo tavolo
                     viewTableReservations(table.id);
                   }}
-                  className="p-1 bg-dark-800 rounded hover:bg-dark-700"
+                  className="p-2 bg-dark-800 rounded hover:bg-dark-700"
                   title="Visualizza prenotazioni"
                 >
-                  <FileText className="w-3 h-3" />
+                  <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     openTableModal(table);
                   }}
-                  className="p-1 bg-dark-800 rounded hover:bg-dark-700"
+                  className="p-2 bg-dark-800 rounded hover:bg-dark-700"
+                  title="Modifica tavolo"
                 >
-                  <Edit2 className="w-3 h-3" />
+                  <Edit2 className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     handleDeleteTable(table.id);
                   }}
-                  className="p-1 bg-dark-800 rounded hover:bg-red-500/20"
+                  className="p-2 bg-dark-800 rounded hover:bg-red-500/20"
+                  title="Elimina tavolo"
                 >
-                  <Trash2 className="w-3 h-3" />
+                  <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
               </div>
             </div>
@@ -1502,24 +1503,22 @@ export function Tables() {
         isOpen={showTableReservationsModal}
         onClose={() => setShowTableReservationsModal(false)}
         title="Prenotazioni tavolo"
-        size="md"
+        size="sm"
       >
-        <div className="space-y-3">
+        <div className="space-y-3 max-h-[60vh] overflow-y-auto">
           {tableReservationsList.length === 0 ? (
             <p className="text-dark-400 text-center py-4">Nessuna prenotazione per questo tavolo oggi</p>
           ) : (
             <div className="space-y-2">
               {tableReservationsList.map((r) => (
-                <div key={r.id} className="p-3 bg-dark-900 rounded-xl">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-semibold text-white">{r.customer_name}</p>
-                      <p className="text-sm text-dark-400">{r.time} • {r.guests} ospiti</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button onClick={() => { setSelectedReservation(r); setShowReservationDetailsModal(true); setShowTableReservationsModal(false); }} className="btn-secondary">Dettagli</button>
-                      <button onClick={() => { handleCancelReservation(r.id); setTableReservationsList(prev => prev.filter(x => x.id !== r.id)); }} className="btn-danger">Annulla</button>
-                    </div>
+                <div key={r.id} className="p-2 sm:p-3 bg-dark-900 rounded-xl flex items-center justify-between">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-white text-sm truncate">{r.customer_name}</p>
+                    <p className="text-xs text-dark-400">{r.time} • {r.guests} ospiti</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => { setSelectedReservation(r); setShowReservationDetailsModal(true); setShowTableReservationsModal(false); }} className="btn-secondary py-1 px-2 text-xs">Dettagli</button>
+                    <button onClick={() => { handleCancelReservation(r.id); setTableReservationsList(prev => prev.filter(x => x.id !== r.id)); }} className="btn-danger py-1 px-2 text-xs">Annulla</button>
                   </div>
                 </div>
               ))}
