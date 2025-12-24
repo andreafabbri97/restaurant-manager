@@ -1027,29 +1027,26 @@ export function Tables() {
                   transform scale-90 pt-6 sm:pt-8 p-2 sm:p-3 transition-transform flex flex-col justify-between min-h-[110px]
               `}
             >
-              <h3 className="text-base sm:text-lg font-bold">{table.name}</h3>
-              <div className="flex items-center gap-1 mt-1">
+              <h3 className="text-base sm:text-lg font-bold text-center w-full">{table.name}</h3>
+              <div className="flex items-center justify-center gap-1 mt-1">
                 <Users className="w-3 h-3 sm:w-4 sm:h-4" />
                 <span className="text-xs sm:text-sm">{table.capacity}</span>
               </div>
 
               {session && (
-                <div className="mt-2 text-[10px] sm:text-xs space-y-1">
-                  <p className="flex items-center gap-1">
+                <div className="mt-2 text-[10px] sm:text-xs space-y-1 text-center">
+                  <p className="flex items-center justify-center gap-1">
                     <Users className="w-3 h-3" />
                     {session.covers} coperti
                   </p>
                   <p className="font-semibold text-base sm:text-lg">€{session.total.toFixed(2)}</p>
-                  {session.customer_name && (
-                    <p className="truncate">{session.customer_name}</p>
-                  )}
                 </div>
               )}
 
               {reservation && !session && (
                 // Mostra informazioni di prenotazione in forma compatta e con la stessa struttura delle card occupate
-                <div className="mt-2 text-[10px] sm:text-xs space-y-1">
-                  <p className="flex items-center gap-1">
+                <div className="mt-2 text-[10px] sm:text-xs space-y-1 text-center">
+                  <p className="flex items-center justify-center gap-1">
                     <Users className="w-3 h-3" />
                     {reservation.guests} coperti
                   </p>
