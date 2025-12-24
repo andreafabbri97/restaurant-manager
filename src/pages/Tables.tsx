@@ -136,7 +136,7 @@ export function Tables() {
   const [selectedTableId, setSelectedTableId] = useState<number | null>(null);
   const [sessionForm, setSessionForm] = useState({ covers: '2', customer_name: '', customer_phone: '' });
   const [paymentForm, setPaymentForm] = useState({ method: 'cash' as 'cash' | 'card' | 'online', smac: false });
-  const [settings] = useState<Settings | null>(null);
+  const [settings, setSettings] = useState<Settings | null>(null);
   const [openSessionApplyCover, setOpenSessionApplyCover] = useState(false);
   const [showCoverChargeModal, setShowCoverChargeModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -184,9 +184,15 @@ export function Tables() {
 
     window.addEventListener('orders-updated', handler);
     window.addEventListener('table-sessions-updated', handler);
+    window.addEventListener('reservations-updated', handler);
+    window.addEventListener('tables-updated', handler);
+    window.addEventListener('settings-updated', handler);
     return () => {
       window.removeEventListener('orders-updated', handler);
       window.removeEventListener('table-sessions-updated', handler);
+      window.removeEventListener('reservations-updated', handler);
+      window.removeEventListener('tables-updated', handler);
+      window.removeEventListener('settings-updated', handler);
     };
   }, [selectedDate]);
 
@@ -194,14 +200,16 @@ export function Tables() {
 
   const loadData = async () => {
     try {
-      const [tablesData, reservationsData] = await Promise.all([
+      const [tablesData, reservationsData, setts] = await Promise.all([
         getTables(),
         getReservations(selectedDate),
-        // fetch active sessions to show occupied tables
-        // getActiveSessions returns TableSession[]
+        getSettings(),
       ]);
       setTables(tablesData);
       setReservations(reservationsData);
+      setSettings(setts);
+      // Default: apply cover on open session if cover is configured
+      setOpenSessionApplyCover((setts?.cover_charge || 0) > 0);
       setLoading(false);
     } catch (error) {
       console.error('Error loading data:', error);
@@ -1305,7 +1313,9 @@ export function Tables() {
               {tables.map((table) => {
                 const isSelected = reservationForm.table_ids.includes(table.id);
                 const tableStatus = getTableStatus(table.id);
-                const isAvailable = tableStatus === 'available';
+                // Allow selecting currently occupied tables when inside the reservation modal
+                // (a table being occupied now shouldn't prevent booking it for a later time).
+                const isAvailable = tableStatus === 'available' || (showReservationModal && tableStatus === 'occupied');
 
                 return (
                   <button
