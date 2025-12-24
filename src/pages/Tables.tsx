@@ -152,6 +152,8 @@ export function Tables() {
   const [showTableModal, setShowTableModal] = useState(false);
   const [showReservationDetailsModal, setShowReservationDetailsModal] = useState(false);
   const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
+  const [showTableReservationsModal, setShowTableReservationsModal] = useState(false);
+  const [tableReservationsList, setTableReservationsList] = useState<Reservation[]>([]);
 
   useEffect(() => {
     loadData();
@@ -323,6 +325,13 @@ export function Tables() {
   function viewReservationDetails(reservation: any) {
     setSelectedReservation(reservation);
     setShowReservationDetailsModal(true);
+  }
+
+  // Mostra tutte le prenotazioni della giornata per un tavolo
+  function viewTableReservations(tableId: number) {
+    const list = reservations.filter(r => (r.table_ids || [r.table_id]).includes(tableId));
+    setTableReservationsList(list);
+    setShowTableReservationsModal(true);
   }
 
   function openEditReservation(reservation: any) {
@@ -1004,20 +1013,13 @@ export function Tables() {
               )}
 
               {reservation && !session && (
+                // Mostra solo indicatore prenotato (nome tavolo rimane visibile). Dettagli disponibili dal pulsante "Visualizza prenotazioni".
                 <div className="mt-2 text-[10px] sm:text-xs">
-                  <p className="truncate">{reservation.customer_name}</p>
-                  <p>{reservation.time}</p>
-                  {/* Mostra icona se tavoli uniti */}
-                  {reservation.table_ids && reservation.table_ids.length > 1 && (
-                    <div className="flex items-center gap-1 mt-1 text-amber-400">
-                      <Link2 className="w-3 h-3" />
-                      <span>{reservation.table_ids.length} tavoli</span>
-                    </div>
-                  )}
+                  <p className="truncate text-dark-300">Prenotazione</p>
                 </div>
               )}
 
-              {status === 'available' && (
+              {(status === 'available' || status === 'reserved') && (
                 <div className="mt-2 sm:mt-3 space-y-1">
                   <button
                     onClick={(e) => {
@@ -1050,6 +1052,17 @@ export function Tables() {
                   className="p-1 bg-dark-800 rounded hover:bg-dark-700"
                 >
                   <Edit2 className="w-3 h-3" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Apri modal con le prenotazioni della giornata per questo tavolo
+                    viewTableReservations(table.id);
+                  }}
+                  className="p-1 bg-dark-800 rounded hover:bg-dark-700"
+                  title="Visualizza prenotazioni"
+                >
+                  <FileText className="w-3 h-3" />
                 </button>
                 <button
                   onClick={(e) => {
@@ -1448,6 +1461,37 @@ export function Tables() {
             </div>
           </div>
         )}
+      </Modal>
+
+      {/* Table Reservations Modal - mostra prenotazioni della giornata filtrate per tavolo */}
+      <Modal
+        isOpen={showTableReservationsModal}
+        onClose={() => setShowTableReservationsModal(false)}
+        title="Prenotazioni tavolo"
+        size="md"
+      >
+        <div className="space-y-3">
+          {tableReservationsList.length === 0 ? (
+            <p className="text-dark-400 text-center py-4">Nessuna prenotazione per questo tavolo oggi</p>
+          ) : (
+            <div className="space-y-2">
+              {tableReservationsList.map((r) => (
+                <div key={r.id} className="p-3 bg-dark-900 rounded-xl">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-semibold text-white">{r.customer_name}</p>
+                      <p className="text-sm text-dark-400">{r.time} • {r.guests} ospiti</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => { setSelectedReservation(r); setShowReservationDetailsModal(true); setShowTableReservationsModal(false); }} className="btn-secondary">Dettagli</button>
+                      <button onClick={() => { handleCancelReservation(r.id); setTableReservationsList(prev => prev.filter(x => x.id !== r.id)); }} className="btn-danger">Annulla</button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </Modal>
 
       {/* Open Session Modal (Apri Conto) */}

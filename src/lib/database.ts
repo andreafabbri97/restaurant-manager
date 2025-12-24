@@ -1270,6 +1270,34 @@ export async function getReservations(date?: string): Promise<Reservation[]> {
 }
 
 export async function createReservation(reservation: Omit<Reservation, 'id'>): Promise<Reservation> {
+  // Prima valida conflitti: non permettere prenotazioni per gli stessi tavoli
+  // entro +/- 2.5 ore (150 minuti) dalla prenotazione esistente
+  const conflictWindowMinutes = 150;
+  const targetDate = reservation.date;
+  // Carica prenotazioni esistenti per la stessa data
+  const existing = await getReservations(targetDate);
+
+  const newTableIds = reservation.table_ids && reservation.table_ids.length > 0 ? reservation.table_ids : [reservation.table_id];
+  const parseTime = (t?: string) => {
+    if (!t) return null;
+    const [hh, mm] = t.split(':').map(Number);
+    return hh * 60 + (mm || 0);
+  };
+  const newTime = parseTime(reservation.time);
+  if (newTime !== null) {
+    for (const ex of existing) {
+      const exTableIds = ex.table_ids && ex.table_ids.length > 0 ? ex.table_ids : [ex.table_id];
+      const overlap = exTableIds.some(id => newTableIds.includes(id));
+      if (!overlap) continue;
+      const exTime = parseTime(ex.time);
+      if (exTime === null) continue;
+      const diff = Math.abs(exTime - newTime);
+      if (diff < conflictWindowMinutes) {
+        throw new Error(`Conflitto prenotazione: tavolo già prenotato alle ${ex.time}`);
+      }
+    }
+  }
+
   if (isSupabaseConfigured && supabase) {
     // Salva table_ids come array (richiede colonna table_ids di tipo integer[] in Supabase)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -1289,6 +1317,33 @@ export async function createReservation(reservation: Omit<Reservation, 'id'>): P
 }
 
 export async function updateReservation(id: number, updates: Partial<Omit<Reservation, 'id'>>): Promise<Reservation> {
+  // When updating reservation, ensure conflict window rule still holds
+  const conflictWindowMinutes = 150;
+  if (updates.date && updates.time) {
+    const existing = await getReservations(updates.date);
+    const newTableIds = updates.table_ids && updates.table_ids.length > 0 ? updates.table_ids : (updates.table_id ? [updates.table_id] : []);
+    const parseTime = (t?: string) => {
+      if (!t) return null;
+      const [hh, mm] = t.split(':').map(Number);
+      return hh * 60 + (mm || 0);
+    };
+    const newTime = parseTime(updates.time);
+    if (newTime !== null) {
+      for (const ex of existing) {
+        if (ex.id === id) continue; // skip self
+        const exTableIds = ex.table_ids && ex.table_ids.length > 0 ? ex.table_ids : [ex.table_id];
+        const overlap = exTableIds.some(idt => newTableIds.includes(idt));
+        if (!overlap) continue;
+        const exTime = parseTime(ex.time);
+        if (exTime === null) continue;
+        const diff = Math.abs(exTime - newTime);
+        if (diff < conflictWindowMinutes) {
+          throw new Error(`Conflitto prenotazione: tavolo già prenotato alle ${ex.time}`);
+        }
+      }
+    }
+  }
+
   if (isSupabaseConfigured && supabase) {
     // Aggiorna anche table_ids su Supabase
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
