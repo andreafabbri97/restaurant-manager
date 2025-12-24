@@ -293,6 +293,62 @@ export function Orders() {
       };
     }, [loadOrdersCallback]);
 
+  // Ensure that if an order is restored as "expanded" from localStorage
+  // we also load its items on mount / when orders are loaded.
+  useEffect(() => {
+    let mounted = true;
+    const statuses = ['pending', 'preparing', 'ready', 'delivered'] as const;
+
+    async function loadExpandedItems() {
+      for (const status of statuses) {
+        const setIds = expandedByColumn[status];
+        if (!setIds || setIds.size === 0) continue;
+
+        for (const id of Array.from(setIds)) {
+          const key = String(id);
+          // Skip if already loading or already have items
+          if (allOrderItemsLoading[key]) continue;
+          if (allOrderItems[key] && allOrderItems[key].length > 0) continue;
+
+          const order = orders.find(o => o.id === id);
+          if (!order) continue;
+
+          try {
+            setAllOrderItemsLoading(prev => ({ ...prev, [key]: true }));
+            let items = await getOrderItems(order.id);
+
+            if ((items || []).length === 0 && order.session_id) {
+              try {
+                const childOrders = await getSessionOrders(order.session_id);
+                const childItemsArr = await Promise.all((childOrders || []).map((o: any) => getOrderItems(o.id)));
+                items = childItemsArr.flat();
+                console.debug('Orders: aggregated items for persisted expanded session', order.session_id, 'count', items.length);
+              } catch (e) {
+                console.error('Error aggregating session child items on mount:', e);
+              }
+            }
+
+            if (!mounted) return;
+            setAllOrderItems(prev => ({ ...prev, [key]: items || [] }));
+          } catch (err) {
+            console.error('Error loading expanded order items on mount:', err);
+            setAllOrderItems(prev => ({ ...prev, [key]: [] }));
+          } finally {
+            if (!mounted) return;
+            setAllOrderItemsLoading(prev => ({ ...prev, [key]: false }));
+          }
+        }
+      }
+    }
+
+    // Only attempt loading when we have orders loaded (avoid running too early)
+    if (orders && orders.length > 0) {
+      loadExpandedItems();
+    }
+
+    return () => { mounted = false; };
+  }, [orders, expandedByColumn]);
+
     // Supabase realtime subscription for orders (keeps kanban in sync)
     useEffect(() => {
       if (!isSupabaseConfigured || !supabase) return;
