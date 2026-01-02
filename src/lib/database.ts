@@ -1854,7 +1854,33 @@ export async function calculateNewUnitCost(
 export async function getDailyStats(date: string): Promise<{ orders: number; revenue: number; avgOrder: number }> {
   const orders = await getOrders(date);
   const completedOrders = orders.filter(o => o.status !== 'cancelled');
-  const revenue = completedOrders.reduce((sum, o) => sum + o.total, 0);
+  
+  // Carica le sessioni per includere i coperti nel revenue (come fatto per SMAC)
+  const sessions = await getSessionsByDate(date);
+  const sessionsMap: Record<number, TableSession> = {};
+  sessions.forEach(s => { sessionsMap[s.id] = s; });
+  
+  // Calcola revenue: usa session.total se disponibile (include coperto), altrimenti somma ordini
+  const sessionIds = new Set<number>();
+  let revenue = 0;
+  
+  for (const order of completedOrders) {
+    if (order.session_id) {
+      // Ordine parte di una sessione
+      if (!sessionIds.has(order.session_id)) {
+        sessionIds.add(order.session_id);
+        const session = sessionsMap[order.session_id];
+        // Preferisci session.total che include coperto
+        const sessionOrders = completedOrders.filter(o => o.session_id === order.session_id);
+        const sessionRevenue = session?.total ?? sessionOrders.reduce((sum, o) => sum + o.total, 0);
+        revenue += sessionRevenue;
+      }
+    } else {
+      // Ordine singolo senza sessione
+      revenue += order.total;
+    }
+  }
+  
   return {
     orders: completedOrders.length,
     revenue,
@@ -2106,7 +2132,8 @@ export async function calculateEOQ(): Promise<EOQResult[]> {
     );
 
     // Consumo totale e medio giornaliero
-    const totalConsumed = recentConsumptions.reduce((sum, c) => sum + c.quantity_used, 0);
+    // Usa Math.abs per considerare solo i consumi effettivi (escludendo i ripristini negativi da cancellazioni)
+    const totalConsumed = recentConsumptions.reduce((sum, c) => sum + Math.abs(c.quantity_used), 0);
     const daysWithData = Math.max(1, new Set(recentConsumptions.map(c => c.date)).size);
     const avgDailyConsumption = totalConsumed / Math.max(daysWithData, 1);
 
@@ -2641,6 +2668,29 @@ export async function getDailyCashSummary(date: string): Promise<{
 }> {
   const orders = await getOrders(date);
   const completedOrders = orders.filter(o => o.status !== 'cancelled');
+  
+  // Carica le sessioni per includere i coperti nel revenue totale
+  const sessions = await getSessionsByDate(date);
+  const sessionsMap: Record<number, TableSession> = {};
+  sessions.forEach(s => { sessionsMap[s.id] = s; });
+
+  // Calcola revenue considerando session.total (include coperto)
+  const sessionIds = new Set<number>();
+  let total_revenue = 0;
+
+  for (const order of completedOrders) {
+    if (order.session_id) {
+      if (!sessionIds.has(order.session_id)) {
+        sessionIds.add(order.session_id);
+        const session = sessionsMap[order.session_id];
+        const sessionOrders = completedOrders.filter(o => o.session_id === order.session_id);
+        const sessionRevenue = session?.total ?? sessionOrders.reduce((sum, o) => sum + o.total, 0);
+        total_revenue += sessionRevenue;
+      }
+    } else {
+      total_revenue += order.total;
+    }
+  }
 
   const cash_revenue = completedOrders
     .filter(o => o.payment_method === 'cash')
@@ -2656,13 +2706,13 @@ export async function getDailyCashSummary(date: string): Promise<{
 
   // Calcolo SMAC considerando i pagamenti divisi (session_payments)
   // Raggruppa ordini per session_id
-  const sessionIds = [...new Set(completedOrders.filter(o => o.session_id).map(o => o.session_id!))];
+  const allSessionIds = [...new Set(completedOrders.filter(o => o.session_id).map(o => o.session_id!))];
   const ordersWithoutSession = completedOrders.filter(o => !o.session_id);
 
   // Carica i pagamenti per tutte le sessioni
   const sessionPaymentsMap: Record<number, SessionPayment[]> = {};
   await Promise.all(
-    sessionIds.map(async (sessionId) => {
+    allSessionIds.map(async (sessionId) => {
       const payments = await getSessionPayments(sessionId);
       if (payments.length > 0) {
         sessionPaymentsMap[sessionId] = payments;
@@ -2690,8 +2740,10 @@ export async function getDailyCashSummary(date: string): Promise<{
     processedSessions.add(sessionId);
 
     const payments = sessionPaymentsMap[sessionId] || [];
+    const session = sessionsMap[sessionId];
     const sessionOrders = completedOrders.filter(o => o.session_id === sessionId);
-    const sessionTotal = sessionOrders.reduce((sum, o) => sum + o.total, 0);
+    // Usa session.total (include coperto) se disponibile
+    const sessionTotal = session?.total ?? sessionOrders.reduce((sum, o) => sum + o.total, 0);
 
     if (payments.length > 0) {
       // Ha pagamenti divisi - usa lo stato SMAC dei pagamenti
@@ -2722,7 +2774,7 @@ export async function getDailyCashSummary(date: string): Promise<{
 
   return {
     total_orders: completedOrders.length,
-    total_revenue: Math.round((cash_revenue + card_revenue + online_revenue) * 100) / 100,
+    total_revenue: Math.round(total_revenue * 100) / 100,
     cash_revenue: Math.round(cash_revenue * 100) / 100,
     card_revenue: Math.round(card_revenue * 100) / 100,
     online_revenue: Math.round(online_revenue * 100) / 100,
