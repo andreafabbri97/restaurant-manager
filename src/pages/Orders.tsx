@@ -1185,7 +1185,11 @@ export function Orders() {
     // Aggiungi le sessioni raggruppate
     Object.entries(sessionMap).forEach(([sessionId, orders]) => {
       const firstOrder = orders[0];
-      const total = orders.reduce((sum, o) => sum + o.total, 0);
+      // Prefer the recorded session total (may include coperto) when available
+      const sessionRecord = historySessions.find(s => Number(s.id || s.session_id) === Number(sessionId));
+      const total = sessionRecord && (sessionRecord.total ?? 0) > 0
+        ? (sessionRecord.total)
+        : orders.reduce((sum, o) => sum + o.total, 0);
       result.push({
         type: 'session',
         sessionId: Number(sessionId),
